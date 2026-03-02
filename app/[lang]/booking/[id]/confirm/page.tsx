@@ -1,15 +1,13 @@
 "use client";
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import type { Locale } from '@/i18n/config';
 import { getBookingDictionary } from '@/i18n/get-booking-dictionary';
 import { Star, MapPin, Calendar, Users, Mail, Phone, User as UserIcon } from 'lucide-react';
 import Link from 'next/link';
 
-export default function ConfirmationPage({ params }: { params: Promise<{ lang: string; id: string }> }) {
-  const { lang: langParam, id } = use(params);
-  const lang = langParam as Locale;
+function ConfirmationContent({ lang, id }: { lang: Locale; id: string }) {
   const searchParams = useSearchParams();
   const [t, setT] = useState<any>(null);
   const [listing, setListing] = useState<any>(null);
@@ -220,5 +218,23 @@ export default function ConfirmationPage({ params }: { params: Promise<{ lang: s
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ConfirmationPage({ params }: { params: Promise<{ lang: string; id: string }> }) {
+  const { lang: langParam, id } = use(params);
+  const lang = langParam as Locale;
+
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading confirmation...</p>
+        </div>
+      </div>
+    }>
+      <ConfirmationContent lang={lang} id={id} />
+    </Suspense>
   );
 }

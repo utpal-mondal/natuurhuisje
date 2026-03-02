@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import type { Locale } from '@/i18n/config';
 import { getBookingDictionary } from '@/i18n/get-booking-dictionary';
 import { Wifi, Car, Utensils, Home, Waves, Wind, Tv, Briefcase, Calendar, Users, ChevronDown, Star, MapPin } from 'lucide-react';
 
-export default function BookingPage({ params }: { params: Promise<{ lang: string; id: string }> }) {
-  const { lang: langParam, id } = use(params);
-  const lang = langParam as Locale;
+function BookingContent({ lang, id }: { lang: Locale; id: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [t, setT] = useState<any>(null);
@@ -395,5 +393,23 @@ export default function BookingPage({ params }: { params: Promise<{ lang: string
         </div>
       </div>
     </div>
+  );
+}
+
+export default function BookingPage({ params }: { params: Promise<{ lang: string; id: string }> }) {
+  const { lang: langParam, id } = use(params);
+  const lang = langParam as Locale;
+
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading booking...</p>
+        </div>
+      </div>
+    }>
+      <BookingContent lang={lang} id={id} />
+    </Suspense>
   );
 }

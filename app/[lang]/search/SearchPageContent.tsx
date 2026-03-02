@@ -1,14 +1,14 @@
 "use client";
 
 import { useParams, useSearchParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import type { Locale } from '@/i18n/config';
 import { getSearchResultsDictionary } from '@/i18n/get-search-results-dictionary';
 import { ListingCard } from '@/components/ListingCard';
 import { SearchDock } from '@/components/SearchDock';
 import { Filter, ChevronDown } from 'lucide-react';
 
-export default function SearchPageContent() {
+function SearchContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const lang = params.lang as Locale;
@@ -252,5 +252,17 @@ export default function SearchPageContent() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SearchPageContent() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-pulse text-gray-600">Loading search results...</div>
+      </div>
+    }>
+      <SearchContent />
+    </Suspense>
   );
 }
