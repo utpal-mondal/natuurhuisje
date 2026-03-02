@@ -7,6 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { LightpickDatePicker } from '@/components/LightpickDatePicker';
 
 export default function StayDetailPage() {
   const params = useParams();
@@ -212,41 +213,24 @@ export default function StayDetailPage() {
               </div>
 
               <div className="mb-4">
-                <div className="grid grid-cols-2 border border-gray-300 rounded-lg overflow-hidden">
-                  <div className="p-3 border-r border-gray-300">
-                    <label className="text-xs font-semibold text-gray-700 uppercase">
-                      {t.details.checkIn}
-                    </label>
-                    <input
-                      type="date"
-                      value={checkIn}
-                      onChange={(e) => setCheckIn(e.target.value)}
-                      className="w-full mt-1 text-sm border-none focus:outline-none"
-                    />
-                  </div>
-                  <div className="p-3">
-                    <label className="text-xs font-semibold text-gray-700 uppercase">
-                      {t.details.checkOut}
-                    </label>
-                    <input
-                      type="date"
-                      value={checkOut}
-                      onChange={(e) => setCheckOut(e.target.value)}
-                      className="w-full mt-1 text-sm border-none focus:outline-none"
-                    />
-                  </div>
-                </div>
+                <LightpickDatePicker
+                  checkIn={checkIn}
+                  checkOut={checkOut}
+                  onCheckInChange={setCheckIn}
+                  onCheckOutChange={setCheckOut}
+                  lang={lang}
+                />
               </div>
 
               <div className="mb-6">
-                <div className="border border-gray-300 rounded-lg p-3">
-                  <label className="text-xs font-semibold text-gray-700 uppercase">
-                    {t.booking.guests}
-                  </label>
+                <label className="text-sm font-medium text-gray-700 block mb-2">
+                  {t.booking.guests}
+                </label>
+                <div className="relative">
                   <select 
                     value={guests}
                     onChange={(e) => setGuests(e.target.value)}
-                    className="w-full mt-1 text-sm border-none focus:outline-none"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-gray-900 hover:bg-gray-50 transition-colors appearance-none bg-white cursor-pointer"
                   >
                     <option value="1">1 {t.details.guests}</option>
                     <option value="2">2 {t.details.guests}</option>
@@ -255,6 +239,9 @@ export default function StayDetailPage() {
                     <option value="5">5 {t.details.guests}</option>
                     <option value="6">6 {t.details.guests}</option>
                   </select>
+                  <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
                 </div>
               </div>
 

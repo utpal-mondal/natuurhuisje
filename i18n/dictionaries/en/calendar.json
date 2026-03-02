@@ -1,0 +1,9 @@
+{
+  "title": "Choose arrival date",
+  "subtitle": "Select your arrival and departure dates to see the current price",
+  "arrival": "Arrival",
+  "departure": "Departure",
+  "selectDate": "Select date",
+  "reset": "Reset",
+  "apply": "Apply"
+}

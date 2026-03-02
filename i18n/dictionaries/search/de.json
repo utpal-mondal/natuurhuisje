@@ -6,6 +6,21 @@
     "person": "Person",
     "persons": "Personen",
     "search": "Suchen",
+    "whereModal": {
+      "title": "Suche wo oder was",
+      "placeholder": "Zum Beispiel Amsterdam, Tiny House",
+      "loading": "Vorschläge werden geladen..."
+    },
+    "peopleModal": {
+      "title": "Anzahl der Personen auswählen"
+    },
+    "datesModal": {
+      "title": "Ankunftsdatum wählen",
+      "subtitle": "Wählen Sie Ihre An- und Abreisedaten, um den aktuellen Preis zu sehen",
+      "arrival": "Ankunft",
+      "departure": "Abreise",
+      "selectDate": "Datum wählen"
+    },
     "suggestions": {
       "popularDestinations": "Beliebte Reiseziele",
       "accommodationTypes": "Unterkunftsarten"

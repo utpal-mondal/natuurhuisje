@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import type { Locale } from '@/i18n/config';
 import { getBookingDictionary } from '@/i18n/get-booking-dictionary';
 import { Wifi, Car, Utensils, Home, Waves, Wind, Tv, Briefcase, Calendar, Users, ChevronDown, Star, MapPin } from 'lucide-react';
+import { LightpickDatePicker } from '@/components/LightpickDatePicker';
 
 function BookingContent({ lang, id }: { lang: Locale; id: string }) {
   const router = useRouter();
@@ -190,40 +191,15 @@ function BookingContent({ lang, id }: { lang: Locale; id: string }) {
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-6">{t.bookingDetails.title}</h2>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t.bookingDetails.checkIn}
-                    </label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input
-                        type="date"
-                        name="checkIn"
-                        value={formData.checkIn}
-                        onChange={handleInputChange}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t.bookingDetails.checkOut}
-                    </label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input
-                        type="date"
-                        name="checkOut"
-                        value={formData.checkOut}
-                        onChange={handleInputChange}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        required
-                      />
-                    </div>
-                  </div>
+                <div className="mb-4">
+                  <LightpickDatePicker
+                    checkIn={formData.checkIn}
+                    checkOut={formData.checkOut}
+                    onCheckInChange={(date) => setFormData(prev => ({ ...prev, checkIn: date }))}
+                    onCheckOutChange={(date) => setFormData(prev => ({ ...prev, checkOut: date }))}
+                    positionClass={`left-0 right-0`}
+                    lang={lang}
+                  />
                 </div>
 
                 <div>
@@ -231,12 +207,11 @@ function BookingContent({ lang, id }: { lang: Locale; id: string }) {
                     {t.bookingDetails.guests}
                   </label>
                   <div className="relative">
-                    <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <select
                       name="guests"
                       value={formData.guests}
                       onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-gray-900 hover:bg-gray-50 transition-colors appearance-none bg-white cursor-pointer"
                       required
                     >
                       <option value="1">1 {t.bookingDetails.guest}</option>
@@ -246,7 +221,9 @@ function BookingContent({ lang, id }: { lang: Locale; id: string }) {
                       <option value="5">5 {t.bookingDetails.guests}</option>
                       <option value="6">6 {t.bookingDetails.guests}</option>
                     </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                    <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
                   </div>
                 </div>
               </div>

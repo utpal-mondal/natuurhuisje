@@ -91,7 +91,15 @@ export function SearchDock({
     loadTranslations();
   }, [currentLang]);
 
-  // Load Lightpick CSS and moment.js
+  // Set moment.js locale globally when language changes
+  useEffect(() => {
+    if (typeof window !== "undefined" && (window as any).moment) {
+      const moment = (window as any).moment;
+      moment.locale(currentLang);
+    }
+  }, [currentLang]);
+
+  // Load Lightpick CSS and moment.js with locales
   useEffect(() => {
     // Add Lightpick CSS
     const lightpickCSS = document.createElement("link");
@@ -100,10 +108,10 @@ export function SearchDock({
       "https://cdn.jsdelivr.net/npm/lightpick@1.6.2/css/lightpick.min.css";
     document.head.appendChild(lightpickCSS);
 
-    // Add moment.js script
+    // Add moment.js script with locales
     const momentScript = document.createElement("script");
     momentScript.src =
-      "https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js";
+      "https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment-with-locales.min.js";
     document.head.appendChild(momentScript);
 
     return () => {
@@ -143,6 +151,17 @@ export function SearchDock({
           const today = new Date();
           today.setHours(0, 0, 0, 0);
           
+          // Set moment locale based on language
+          const moment = (window as any).moment;
+          if (moment) {
+            console.log('SearchDock - Setting moment.js locale to:', currentLang);
+            const result = moment.locale(currentLang);
+            console.log('SearchDock - Moment.js locale set to:', result);
+            console.log('SearchDock - Current moment locale:', moment.locale());
+          } else {
+            console.error('SearchDock - Moment.js not loaded!');
+          }
+          
           lightpickRef.current = new Lightpick({
             field: dateInputRef.current,
             singleDate: false,
@@ -150,6 +169,7 @@ export function SearchDock({
             numberOfColumns: 2,
             footer: true,
             inline: true,
+            lang: currentLang,
             minDate: today,
             onSelect: function (start: any, end: any) {
               if (start) {
@@ -185,7 +205,7 @@ export function SearchDock({
         lightpickRef.current = null;
       }
     };
-  }, [activeTab]);
+  }, [activeTab, currentLang, t]);
 
   // Search suggestions data
   const [suggestions, setSuggestions] = useState<{
@@ -198,14 +218,11 @@ export function SearchDock({
 
   // Load search options from JSON
   useEffect(() => {
-    console.log("Fetching search options...");
     fetch("/data/search-options.json")
       .then((response) => {
-        console.log("Response status:", response.status);
         return response.json();
       })
       .then((data) => {
-        console.log("Loaded search options:", data);
         setSuggestions({
           locations: data.locations || [],
           categories: data.categories || [],
@@ -276,7 +293,7 @@ export function SearchDock({
     router.push(`/${currentLang}/search?${searchParams.toString()}`);
   };
 
-  if (!t) {
+  if (!t || !t.searchDock) {
     return null;
   }
 
@@ -444,7 +461,7 @@ export function SearchDock({
               {/* Header */}
               <div className="flex items-center justify-between mb-4 px-6 pt-6">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  Zoek waar of wat
+                  {t.searchDock.whereModal.title}
                 </h3>
                 <button
                   onClick={() => setActiveTab(null)}
@@ -459,7 +476,7 @@ export function SearchDock({
                 <Search className="absolute left-10 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Bijvoorbeeld Amsterdam, Tiny House"
+                  placeholder={t.searchDock.whereModal.placeholder}
                   className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
@@ -479,7 +496,7 @@ export function SearchDock({
                 {suggestions.locations.length === 0 &&
                 suggestions.categories.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
-                    Suggesties worden geladen...
+                    {t.searchDock.whereModal.loading}
                   </div>
                 ) : (
                   <>
@@ -579,14 +596,13 @@ export function SearchDock({
                   {/* Header */}
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="text-lg font-semibold text-gray-900">
-                      Aankomstdatum kiezen
+                      {t.searchDock.datesModal.title}
                     </h3>
                   </div>
 
                   {/* Subtitle */}
                   <p className="text-sm text-gray-600 mb-4">
-                    Kies je aankomst- en vertrekdatum om de actuele prijs te
-                    zien
+                    {t.searchDock.datesModal.subtitle}
                   </p>
                 </div>
 
@@ -594,7 +610,7 @@ export function SearchDock({
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Aankomst
+                      {t.searchDock.datesModal.arrival}
                     </label>
                     <button
                       className={`w-full px-4 py-3 rounded-lg border-2 text-left transition-colors ${
@@ -605,12 +621,12 @@ export function SearchDock({
                     >
                       {selectedStartDate
                         ? format(selectedStartDate, "dd/MM/yyyy")
-                        : "Kies datum"}
+                        : t.searchDock.datesModal.selectDate}
                     </button>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Vertrek
+                      {t.searchDock.datesModal.departure}
                     </label>
                     <button
                       className={`w-full px-4 py-3 rounded-lg border-2 text-left transition-colors ${
@@ -621,7 +637,7 @@ export function SearchDock({
                     >
                       {selectedEndDate
                         ? format(selectedEndDate, "dd/MM/yyyy")
-                        : "Kies datum"}
+                        : t.searchDock.datesModal.selectDate}
                     </button>
                   </div>
                 </div>
@@ -654,7 +670,7 @@ export function SearchDock({
               {/* Header */}
               <div className="flex items-center justify-between mb-6 pt-6 px-6">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  Selecteer aantal personen
+                  {t.searchDock.peopleModal.title}
                 </h3>
                 <button
                   onClick={() => setActiveTab(null)}

@@ -6,6 +6,21 @@
     "person": "persoon",
     "persons": "personen",
     "search": "Zoeken",
+    "whereModal": {
+      "title": "Zoek waar of wat",
+      "placeholder": "Bijvoorbeeld Amsterdam, Tiny House",
+      "loading": "Suggesties worden geladen..."
+    },
+    "peopleModal": {
+      "title": "Selecteer aantal personen"
+    },
+    "datesModal": {
+      "title": "Aankomstdatum kiezen",
+      "subtitle": "Kies je aankomst- en vertrekdatum om de actuele prijs te zien",
+      "arrival": "Aankomst",
+      "departure": "Vertrek",
+      "selectDate": "Kies datum"
+    },
     "suggestions": {
       "popularDestinations": "Populaire bestemmingen",
       "accommodationTypes": "Accommodatie types"
