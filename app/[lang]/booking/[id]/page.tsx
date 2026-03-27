@@ -6,6 +6,7 @@ import type { Locale } from '@/i18n/config';
 import { getBookingDictionary } from '@/i18n/get-booking-dictionary';
 import { Wifi, Car, Utensils, Home, Waves, Wind, Tv, Briefcase, Calendar, Users, ChevronDown, Star, MapPin } from 'lucide-react';
 import { LightpickDatePicker } from '@/components/LightpickDatePicker';
+import { createClient } from '@/utils/supabase/client';
 
 function BookingContent({ lang, id }: { lang: Locale; id: string }) {
   const router = useRouter();
@@ -25,6 +26,12 @@ function BookingContent({ lang, id }: { lang: Locale; id: string }) {
     phone: '',
     specialRequests: '',
   });
+
+  // State for pricing calculations
+  const [nights, setNights] = useState(0);
+  const [subtotal, setSubtotal] = useState(0);
+  const [totalPrice, setTotalPrice] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Check if booking details are complete
   useEffect(() => {
@@ -49,13 +56,64 @@ function BookingContent({ lang, id }: { lang: Locale; id: string }) {
   useEffect(() => {
     const fetchListing = async () => {
       try {
-        const response = await fetch(`/data/listings-${lang}.json`);
-        const data = await response.json();
-        const foundListing = data.featuredListings.find((l: any) => l.id === id);
+        // Fetch listing from Supabase
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from('houses')
+          .select(`
+            *,
+            house_images (
+              image_url,
+              sort_order
+            )
+          `)
+          .eq('id', id)
+          .single();
         
-        if (foundListing) {
-          foundListing.reviews_count = 24;
-          setListing(foundListing);
+        if (error) {
+          console.error('Error fetching listing from Supabase:', error);
+          return;
+        }
+        
+        if (data) {
+          // Transform data to match expected format
+          const rawData = data as any;
+          // Extract images from house_images relationship
+          const images = rawData.house_images 
+            ? rawData.house_images
+                .sort((a: any, b: any) => a.sort_order - b.sort_order)
+                .map((img: any) => img.image_url)
+            : [];
+          
+          const transformedListing = {
+            id: rawData.id,
+            title: rawData.accommodation_name || rawData.title || 'Property',
+            description: rawData.description || '',
+            property_type: rawData.type || rawData.property_type || 'house',
+            location: rawData.location || rawData.place || '',
+            address: `${rawData.street || ''} ${rawData.house_number || ''}, ${rawData.postal_code || ''} ${rawData.place || ''}`.trim(),
+            price_per_night: rawData.price_per_night || 0,
+            min_nights: rawData.min_nights || 1,
+            max_guests: rawData.max_person || rawData.max_guests || 1,
+            bedrooms: rawData.bedrooms || 0,
+            beds: rawData.beds || 0,
+            bathrooms: rawData.bathrooms || 0,
+            amenities: rawData.amenities || [],
+            images: images.length > 0 ? images : ['/images/default-house.jpg'],
+            is_published: rawData.is_published || true,
+            created_at: rawData.created_at || '',
+            slug: rawData.slug || rawData.id,
+            avg_rating: rawData.avg_rating || 0,
+            reviews_count: 24,
+            host: {
+              name: 'Host',
+              image: '/images/default-host.jpg',
+              verified: true,
+              is_superhost: false
+            }
+          };
+          
+          setListing(transformedListing);
         }
       } catch (error) {
         console.error('Error fetching listing:', error);
@@ -72,33 +130,56 @@ function BookingContent({ lang, id }: { lang: Locale; id: string }) {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Booking submitted:', formData);
     
-    const confirmParams = new URLSearchParams({
-      checkIn: formData.checkIn,
-      checkOut: formData.checkOut,
-      guests: formData.guests,
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      email: formData.email,
-      phone: formData.phone,
-    });
+    setIsSubmitting(true);
     
-    router.push(`/${lang}/booking/${id}/confirm?${confirmParams.toString()}`);
+    try {
+      console.log('Booking submitted:', formData);
+      
+      // Build URL with query parameters
+      const queryParams = new URLSearchParams({
+        houseId: listing.id.toString(),
+        checkIn: formData.checkIn,
+        checkOut: formData.checkOut,
+        guests: formData.guests,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        specialRequests: formData.specialRequests,
+        totalPrice: totalPrice.toString()
+      });
+      
+      // Navigate to confirmation page
+      router.push(`/${lang}/booking/confirm?${queryParams.toString()}`);
+    } catch (error) {
+      console.error('Error submitting booking:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  if (loading || !t || !listing) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  // Calculate number of nights
+  const calculateNights = (checkIn: string, checkOut: string) => {
+    if (!checkIn || !checkOut) return 0;
+    
+    const startDate = new Date(checkIn);
+    const endDate = new Date(checkOut);
+    
+    // Validate dates
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return 0;
+    
+    // Calculate difference in milliseconds and convert to days
+    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return diffDays > 0 ? diffDays : 0;
+  };
+
+  const cleaningFee = 25;
+  const serviceFee = 35;
 
   const amenityIcons: Record<string, any> = {
     wifi: Wifi,
@@ -115,10 +196,46 @@ function BookingContent({ lang, id }: { lang: Locale; id: string }) {
     tv: Tv,
   };
 
-  const nights = 5; // Calculate from check-in/check-out dates
-  const cleaningFee = 25;
-  const serviceFee = 35;
-  const totalPrice = listing.price_per_night * nights + cleaningFee + serviceFee;
+  const isLoading = loading || !t || !listing;
+
+  // Update form data when URL parameters change
+  useEffect(() => {
+    const checkInParam = searchParams.get('checkIn');
+    const checkOutParam = searchParams.get('checkOut');
+    const guestsParam = searchParams.get('guests');
+    
+    if (checkInParam || checkOutParam || guestsParam) {
+      setFormData(prev => ({
+        ...prev,
+        checkIn: checkInParam || prev.checkIn,
+        checkOut: checkOutParam || prev.checkOut,
+        guests: guestsParam || prev.guests
+      }));
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    const calculatedNights = calculateNights(formData.checkIn, formData.checkOut);
+    setNights(calculatedNights);
+    
+    const calculatedSubtotal = listing?.price_per_night * calculatedNights || 0;
+    setSubtotal(calculatedSubtotal);
+    
+    const calculatedTotal = calculatedSubtotal + cleaningFee + serviceFee;
+    setTotalPrice(calculatedTotal);
+  }, [formData.checkIn, formData.checkOut, listing?.price_per_night]);
+
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -175,7 +292,7 @@ function BookingContent({ lang, id }: { lang: Locale; id: string }) {
               <div className="flex items-center justify-between pt-3 border-t border-gray-200">
                 <div>
                   <div className="text-sm text-gray-600">{t.pricePerNight}</div>
-                  <div className="text-xl font-bold text-gray-900">€{listing.price_per_night}</div>
+                  <div className="text-xl font-bold text-gray-900">€{listing?.price_per_night || 0}</div>
                 </div>
               </div>
             </div>
@@ -308,9 +425,32 @@ function BookingContent({ lang, id }: { lang: Locale; id: string }) {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+                disabled={isSubmitting}
+                className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {t.confirmBooking}
+                {isSubmitting ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    Processing...
+                  </>
+                ) : (
+                  t.confirmBooking
+                )}
               </button>
             </form>
           </div>
@@ -348,8 +488,8 @@ function BookingContent({ lang, id }: { lang: Locale; id: string }) {
 
                 <div className="border-t border-gray-200 pt-4 space-y-3">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">€{listing.price_per_night} x {nights} {t.pricing.nights}</span>
-                    <span className="text-gray-900">€{listing.price_per_night * nights}</span>
+                    <span className="text-gray-600">€{listing?.price_per_night || 0} x {nights} {t.pricing.nights}</span>
+                    <span className="text-gray-900">€{subtotal}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">{t.pricing.cleaningFee}</span>

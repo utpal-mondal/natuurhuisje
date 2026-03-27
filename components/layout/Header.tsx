@@ -192,6 +192,22 @@ export function Header({ user: propUser, lang }: HeaderProps) {
   });
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const languageDropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Check if we're on the rent-out or booking page
+  const isRentOutPage = pathname?.includes("/rent-out");
+  const isBookingPage = pathname?.includes("/booking");
+  const isConfirmPage = pathname?.includes("/confirm");
+  
+  // Check if we should hide the search in header
+  const hideHeaderSearch =
+    pathname?.includes("/login") ||
+    pathname?.includes("/register") ||
+    pathname?.includes("/host/edit") ||
+    pathname?.includes("/host/new") ||
+    pathname?.includes("/account") ||
+    pathname?.includes("/auth/callback") ||
+    isRentOutPage ||
+    isBookingPage;
 
   const languages = [
     { code: "nl", name: "Nederlands", flag: "/flags/nl.svg" },
@@ -217,7 +233,7 @@ export function Header({ user: propUser, lang }: HeaderProps) {
   useEffect(() => {
     const handleScroll = () => {
       // Desktop search bar (>= 768px)
-      if (window.scrollY > 500 && window.innerWidth >= 768) {
+      if (window.scrollY > 500 && window.innerWidth >= 768 && !hideHeaderSearch) {
         setShowSearchBar(true);
       } else {
         setShowSearchBar(false);
@@ -225,7 +241,7 @@ export function Header({ user: propUser, lang }: HeaderProps) {
       }
 
       // Mobile search bar (< 768px)
-      if (window.scrollY > 100 && window.innerWidth < 768) {
+      if (window.scrollY > 100 && window.innerWidth < 768 && !hideHeaderSearch) {
         setShowMobileSearch(true);
       } else if (window.innerWidth < 768) {
         setShowMobileSearch(false);
@@ -235,7 +251,7 @@ export function Header({ user: propUser, lang }: HeaderProps) {
     window.addEventListener("scroll", handleScroll);
     setActiveSearchTab(null);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [hideHeaderSearch]);
 
   // Prevent body scroll on mobile when activeSearchTab is open
   useEffect(() => {
@@ -354,11 +370,6 @@ export function Header({ user: propUser, lang }: HeaderProps) {
         return <MapPin className="h-5 w-5 text-gray-600 shrink-0" />;
     }
   };
-
-  // Check if we're on the rent-out or booking page
-  const isRentOutPage = pathname?.includes("/rent-out");
-  const isBookingPage = pathname?.includes("/booking");
-  const isConfirmPage = pathname?.includes("/confirm");
 
   // If on rent-out or booking page, show minimal header
   if (isRentOutPage || isBookingPage) {
@@ -512,7 +523,7 @@ export function Header({ user: propUser, lang }: HeaderProps) {
       <div className="w-full py-4 bg-white border-b border-black/5 shadow-sm transition-all duration-300">
         <div className="container-custom">
           {/* Mobile Compact Search Bar - Only on mobile when scrolled */}
-          {showMobileSearch ? (
+          {!hideHeaderSearch && showMobileSearch ? (
             <div className="relative">
               <div className="md:hidden flex items-center gap-2">
                 <div className="flex-1 flex items-center gap-2 bg-white border border-gray-300 rounded-lg px-3 py-2.5 shadow-sm">
@@ -897,78 +908,80 @@ export function Header({ user: propUser, lang }: HeaderProps) {
             <Logo size="md" />
 
             {/* Zoekbalk - Wordt getoond bij scrollen */}
-            <div
-              className={`hidden md:flex items-center transition-all duration-300 ${showSearchBar ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"}`}
-            >
-              {!showSearchDock ? (
-                <div className="flex items-center bg-blue-50 rounded-xl overflow-hidden shadow-sm">
-                  {/* Waar/Wat Input */}
-                  <button
-                    onClick={() => {
-                      setActiveSearchTab("where");
-                      setShowSearchDock(true);
-                    }}
-                    className="flex items-center gap-2 px-5 py-3 bg-white rounded-l-xl hover:bg-gray-50 transition-colors"
-                  >
-                    <MapPin className="h-5 w-5 text-gray-500" />
-                    <span className="text-sm text-gray-700">
-                      {location ||
-                        searchT?.searchDock?.whereOrWhat ||
-                        "Waar of wat?"}
-                    </span>
-                  </button>
+            {!hideHeaderSearch && (
+              <div
+                className={`hidden md:flex items-center transition-all duration-300 ${showSearchBar ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"}`}
+              >
+                {!showSearchDock ? (
+                  <div className="flex items-center bg-blue-50 rounded-xl overflow-hidden shadow-sm">
+                    {/* Waar/Wat Input */}
+                    <button
+                      onClick={() => {
+                        setActiveSearchTab("where");
+                        setShowSearchDock(true);
+                      }}
+                      className="flex items-center gap-2 px-5 py-3 bg-white rounded-l-xl hover:bg-gray-50 transition-colors"
+                    >
+                      <MapPin className="h-5 w-5 text-gray-500" />
+                      <span className="text-sm text-gray-700">
+                        {location ||
+                          searchT?.searchDock?.whereOrWhat ||
+                          "Waar of wat?"}
+                      </span>
+                    </button>
 
-                  {/* Datum Picker */}
-                  <button
-                    onClick={() => {
-                      setActiveSearchTab("dates");
-                      setShowSearchDock(true);
-                    }}
-                    className="flex items-center gap-2 px-5 py-3 bg-white ml-px hover:bg-gray-50 transition-colors"
-                  >
-                    <Calendar className="h-5 w-5 text-gray-500" />
-                    <span className="text-sm text-gray-700">
-                      {selectedStartDate && selectedEndDate
-                        ? `${format(selectedStartDate, "dd MMM")} - ${format(selectedEndDate, "dd MMM")}`
-                        : searchT?.searchDock?.chooseDates || "Kies datums"}
-                    </span>
-                  </button>
+                    {/* Datum Picker */}
+                    <button
+                      onClick={() => {
+                        setActiveSearchTab("dates");
+                        setShowSearchDock(true);
+                      }}
+                      className="flex items-center gap-2 px-5 py-3 bg-white ml-px hover:bg-gray-50 transition-colors"
+                    >
+                      <Calendar className="h-5 w-5 text-gray-500" />
+                      <span className="text-sm text-gray-700">
+                        {selectedStartDate && selectedEndDate
+                          ? `${format(selectedStartDate, "dd MMM")} - ${format(selectedEndDate, "dd MMM")}`
+                          : searchT?.searchDock?.chooseDates || "Kies datums"}
+                      </span>
+                    </button>
 
-                  {/* Gasten */}
-                  <button
-                    onClick={() => {
-                      setActiveSearchTab("people");
-                      setShowSearchDock(true);
-                    }}
-                    className="flex items-center gap-2 px-5 py-3 bg-white ml-px hover:bg-gray-50 transition-colors"
-                  >
-                    <Users className="h-5 w-5 text-gray-500" />
-                    <span className="text-sm text-gray-700">
-                      {guests > 0
-                        ? `${guests} ${guests === 1 ? searchT?.searchDock?.guest || "persoon" : searchT?.searchDock?.guests || "personen"}`
-                        : searchT?.searchDock?.guests || "personen"}
-                    </span>
-                  </button>
+                    {/* Gasten */}
+                    <button
+                      onClick={() => {
+                        setActiveSearchTab("people");
+                        setShowSearchDock(true);
+                      }}
+                      className="flex items-center gap-2 px-5 py-3 bg-white ml-px hover:bg-gray-50 transition-colors"
+                    >
+                      <Users className="h-5 w-5 text-gray-500" />
+                      <span className="text-sm text-gray-700">
+                        {guests > 0
+                          ? `${guests} ${guests === 1 ? searchT?.searchDock?.guest || "persoon" : searchT?.searchDock?.guests || "personen"}`
+                          : searchT?.searchDock?.guests || "personen"}
+                      </span>
+                    </button>
 
-                  {/* Zoek Knop */}
-                  <button
-                    onClick={() => setShowSearchDock(true)}
-                    className="bg-teal-500 text-white px-6 py-3 rounded-r-xl ml-px flex items-center justify-center hover:bg-teal-600 transition-colors"
-                  >
-                    <Search className="h-5 w-5" />
-                  </button>
-                </div>
-              ) : (
-                <div className="w-full max-w-3xl">
-                  <SearchDock
-                    variant="compact"
-                    maxWidth="max-w-3xl"
-                    initialTab={activeSearchTab}
-                    lang={locale}
-                  />
-                </div>
-              )}
-            </div>
+                    {/* Zoek Knop */}
+                    <button
+                      onClick={() => setShowSearchDock(true)}
+                      className="bg-teal-500 text-white px-6 py-3 rounded-r-xl ml-px flex items-center justify-center hover:bg-teal-600 transition-colors"
+                    >
+                      <Search className="h-5 w-5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-full max-w-3xl">
+                    <SearchDock
+                      variant="compact"
+                      maxWidth="max-w-3xl"
+                      initialTab={activeSearchTab}
+                      lang={locale}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="flex items-center gap-4">
               {/* Heart Icon */}

@@ -29,17 +29,36 @@ interface ListingFormProps {
   isNew: boolean;
 }
 
+const initialFormState = {
+  id: '',
+  host_id: '',
+  title: '',
+  description: '',
+  property_type: 'cabin',
+  location: '',
+  address: '',
+  price_per_night: 0,
+  min_nights: 1,
+  max_guests: 1,
+  bedrooms: 0,
+  beds: 1,
+  bathrooms: 0,
+  amenities: [],
+  images: [],
+  is_published: false,
+} as ListingFormProps['listing'];
+
 export function ListingForm({ listing, isNew }: ListingFormProps) {
   const router = useRouter();
   const supabase = createClient();
   
   // Form state
-  const [formState, setFormState] = useState({ ...listing });
+  const [formState, setFormState] = useState({ ...initialFormState, ...listing });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
-  const [imagePreview, setImagePreview] = useState<string[]>(listing.images);
+  const [imagePreview, setImagePreview] = useState<string[]>(formState.images);
   
   // Amenity options
   const amenityOptions = [

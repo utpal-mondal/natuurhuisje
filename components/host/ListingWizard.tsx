@@ -20,7 +20,7 @@ import {
   Plus
 } from 'lucide-react';
 import { uploadHouseImages, validateImageFile } from '@/lib/supabase-storage';
-import { saveListingToDatabase } from '@/lib/supabase-listings';
+import { saveListingToDatabase, updateListingToDatabase } from '@/lib/supabase-listings';
 import { createClient } from '@/utils/supabase/client';
 
 // Unified checkbox handler
@@ -78,6 +78,7 @@ export function ListingWizard({ mode = 'create', existingListing = null }: { mod
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState('general');
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
+
   const [formData, setFormData] = useState(() => {
     if (mode === 'edit' && existingListing) {
       return {
@@ -299,15 +300,15 @@ export function ListingWizard({ mode = 'create', existingListing = null }: { mod
 
       const userId = user.id;
 
+      console.log("Form data:", formData);
+
       if (mode === 'edit' && existingListing) {
         // Update existing listing
         console.log('Updating listing:', existingListing.id, formData);
-        // TODO: Implement update logic - for now we'll use the same save function
-        // This should be replaced with an update function when available
-        const result = await saveListingToDatabase(formData, userId);
+        const result = await updateListingToDatabase(existingListing.id, formData, userId);
         if (result.success) {
           alert('Listing updated successfully!');
-          router.push(`/host/edit/${existingListing.id}`);
+          router.push('/account/listings');
         } else {
           alert(`Error updating listing: ${result.error}`);
         }
@@ -329,12 +330,13 @@ export function ListingWizard({ mode = 'create', existingListing = null }: { mod
   };
 
   return (
+    <div className="flex min-h-screen bg-[#F8F4E3]">
       {/* Sidebar */}
       <aside className="w-64 bg-[#F8F4E3] border-r border-[#E5E5E5] sticky h-full overflow-y-auto hidden md:block">
         <div className="p-6">
           {/* Back Button */}
           <button
-            onClick={() => router.push(mode === 'edit' ? `/host/edit/${existingListing?.id}` : '/account/landlord')}
+            onClick={() => window.history.back()}
             className="w-full flex items-center gap-3 px-3 py-3 text-sm font-medium rounded-lg transition-colors text-gray-600 hover:text-[#244224] hover:bg-white/50 mb-6"
           >
             <ChevronLeft size={18} className="text-gray-400" />
@@ -462,8 +464,8 @@ function GeneralStep({ data, updateData, onNext, onPrevious }: any) {
           <input 
             type="number" 
             className="w-full px-4 py-3 rounded-xl border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-[#59A559]/20 focus:border-[#59A559] bg-white transition-all duration-300 transform hover:border-gray-500 hover:shadow-md focus:shadow-lg focus:scale-[1.02] placeholder-gray-400"
-            value={data.maxPerson}
-            onChange={(e) => updateData({...data, maxPerson: parseInt(e.target.value)})}
+            value={data.maxPerson || ''}
+            onChange={(e) => updateData({...data, maxPerson: parseInt(e.target.value) || 0})}
           />
         </div>
 
@@ -1370,7 +1372,7 @@ function PricingStep({ data, updateData, onNext, onPrevious }: any) {
             type="number" 
             placeholder="0.00"
             className="w-full pl-8 pr-4 py-3 rounded-xl border-2 border-gray-400 focus:outline-none focus:ring-2 focus:ring-[#59A559]/20 focus:border-[#59A559] transition-all duration-300 transform hover:border-gray-500 hover:shadow-md focus:shadow-lg focus:scale-[1.02] placeholder-gray-400"
-            value={data.pricePerNight}
+            value={data.pricePerNight || ''}
             onChange={(e) => updateData({...data, pricePerNight: e.target.value})}
           />
         </div>
@@ -1479,7 +1481,7 @@ function PricingStep({ data, updateData, onNext, onPrevious }: any) {
                       type="number" 
                       placeholder="0.00"
                       className="w-32 pl-8 pr-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#59A559]/20 focus:border-[#59A559] bg-white shadow-sm"
-                      value={data.safetyDepositAmount}
+                      value={data.safetyDepositAmount || ''}
                       onChange={(e) => updateData({...data, safetyDepositAmount: e.target.value})}
                     />
                   </div>
@@ -1531,7 +1533,7 @@ function PricingStep({ data, updateData, onNext, onPrevious }: any) {
                       type="number" 
                       placeholder="0.00"
                       className="w-32 pl-8 pr-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#59A559]/20 focus:border-[#59A559] bg-white shadow-sm"
-                      value={data.safetyDepositAmount}
+                      value={data.safetyDepositAmount || ''}
                       onChange={(e) => updateData({...data, safetyDepositAmount: e.target.value})}
                     />
                   </div>
@@ -1620,7 +1622,7 @@ function PricingStep({ data, updateData, onNext, onPrevious }: any) {
                       type="number" 
                       placeholder="0.00"
                       className="w-full pl-8 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#59A559]/20 focus:border-[#59A559] bg-white"
-                      value={data.longerStayPricing.weekendPrice}
+                      value={data.longerStayPricing.weekendPrice || ''}
                       onChange={(e) => updateData({
                         ...data, 
                         longerStayPricing: {
@@ -1686,7 +1688,7 @@ function PricingStep({ data, updateData, onNext, onPrevious }: any) {
                       type="number" 
                       placeholder="0.00"
                       className="w-full pl-8 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#59A559]/20 focus:border-[#59A559] bg-white"
-                      value={data.longerStayPricing.longWeekendPrice}
+                      value={data.longerStayPricing.longWeekendPrice || ''}
                       onChange={(e) => updateData({
                         ...data, 
                         longerStayPricing: {
@@ -1752,7 +1754,7 @@ function PricingStep({ data, updateData, onNext, onPrevious }: any) {
                       type="number" 
                       placeholder="0.00"
                       className="w-full pl-8 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#59A559]/20 focus:border-[#59A559] bg-white"
-                      value={data.longerStayPricing.weekdayPrice}
+                      value={data.longerStayPricing.weekdayPrice || ''}
                       onChange={(e) => updateData({
                         ...data, 
                         longerStayPricing: {
@@ -1818,7 +1820,7 @@ function PricingStep({ data, updateData, onNext, onPrevious }: any) {
                       type="number" 
                       placeholder="0.00"
                       className="w-full pl-8 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#59A559]/20 focus:border-[#59A559] bg-white"
-                      value={data.longerStayPricing.weekPrice}
+                      value={data.longerStayPricing.weekPrice || ''}
                       onChange={(e) => updateData({
                         ...data, 
                         longerStayPricing: {
@@ -1891,7 +1893,7 @@ function PricingStep({ data, updateData, onNext, onPrevious }: any) {
                       type="number" 
                       placeholder="0.00"
                       className="w-full pl-8 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#59A559]/20 focus:border-[#59A559] bg-white"
-                      value={data.personPricing.additionalPersonPrice}
+                      value={data.personPricing.additionalPersonPrice || ''}
                       onChange={(e) => updateData({
                         ...data, 
                         personPricing: {
@@ -3743,7 +3745,7 @@ function SustainabilityStep({ data, updateData, onNext, onPrevious }: any) {
               {section.questions.map((q) => (
                 <div key={q.id} className="space-y-3 border-b border-gray-100 pb-4 last:border-0">
                   <div className="flex items-start gap-2">
-                    <p className="text-gray-800 flex-1">
+                    <div className="text-gray-800 flex-1">
                       {q.text}
                       {q.tooltip && (
                         <span className="relative group inline-flex ml-2">
@@ -3796,7 +3798,7 @@ function SustainabilityStep({ data, updateData, onNext, onPrevious }: any) {
                           </div>
                         </span>
                       )}
-                    </p>
+                    </div>
                   </div>
                   <div className="flex gap-6">
                     <label className="flex items-center gap-2 cursor-pointer">
