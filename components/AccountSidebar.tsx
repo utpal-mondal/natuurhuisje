@@ -90,7 +90,7 @@ export default function AccountSidebar({ lang, className = '' }: AccountSidebarP
     return pathname.startsWith(href);
   };
 
-  const fullName=user?.user_metadata?.first_name+" "+user?.user_metadata?.last_nsame
+  const fullName=user?.user_metadata?.first_name+" "+user?.user_metadata?.last_name
 
   return (
     <div className={`w-64 ${className}`}>

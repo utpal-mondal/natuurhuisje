@@ -329,6 +329,7 @@ export function ListingWizard({ mode = 'create', existingListing = null }: { mod
   };
 
   return (
+    <div className="flex h-screen">
       {/* Sidebar */}
       <aside className="w-64 bg-[#F8F4E3] border-r border-[#E5E5E5] sticky h-full overflow-y-auto hidden md:block">
         <div className="p-6">
