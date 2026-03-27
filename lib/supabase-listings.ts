@@ -274,7 +274,7 @@ export async function updateListingToDatabase(listingId: string, data: ListingDa
     }
 
     // First, verify the user owns this listing
-    const { data: existingHouse, error: fetchError } = await supabase
+    const { data: existingHouse, error: fetchError } = await (supabase as any)
       .from('houses')
       .select('id, host_id')
       .eq('id', numericListingId)

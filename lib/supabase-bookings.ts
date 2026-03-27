@@ -42,7 +42,7 @@ export async function createBooking(bookingData: CreateBookingData) {
       throw new Error('A booking for these dates already exists. Please check your bookings page.');
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('bookings')
       .insert({
         house_id: parseInt(bookingData.houseId.toString()),
@@ -160,7 +160,7 @@ export async function updateBookingStatus(bookingId: string, status: Booking['st
   const supabase = createClient();
   
   try {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('bookings')
       .update({ status })
       .eq('id', bookingId)
@@ -182,7 +182,7 @@ export async function getUserBookings(userId?: string) {
   const supabase = createClient();
   
   try {
-    let query = supabase
+    let query = (supabase as any)
       .from('bookings')
       .select(`
         *,
@@ -207,7 +207,7 @@ export async function getUserBookings(userId?: string) {
     if (error) throw error;
     
     // Transform the data to match our interface
-    const transformedData: BookingWithHouse[] = data?.map(booking => ({
+    const transformedData: BookingWithHouse[] = data?.map((booking: any) => ({
       ...booking,
       house: {
         ...booking.house,
@@ -245,10 +245,10 @@ export async function getHostBookings(hostId: string, page: number = 1, itemsPer
       return { success: true, data: [], total: 0 };
     }
 
-    const houseIds = hostHouses.map(h => h.id);
+    const houseIds = hostHouses.map((h: any) => h.id);
 
     // Get total count first
-    const { count, error: countError } = await supabase
+    const { count, error: countError } = await (supabase as any)
       .from('bookings')
       .select('id', { count: 'exact', head: true })
       .in('house_id', houseIds);
@@ -257,7 +257,7 @@ export async function getHostBookings(hostId: string, page: number = 1, itemsPer
 
     // Get paginated data
     const offset = (page - 1) * itemsPerPage;
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('bookings')
       .select(`
         *,
@@ -278,7 +278,7 @@ export async function getHostBookings(hostId: string, page: number = 1, itemsPer
     if (error) throw error;
     
     // Transform the data to match our interface
-    const transformedData: BookingWithHouse[] = data?.map(booking => ({
+    const transformedData: BookingWithHouse[] = data?.map((booking: any) => ({
       ...booking,
       house: {
         ...booking.house,
@@ -311,7 +311,7 @@ export async function checkBookingAvailability(
   const supabase = createClient();
   
   try {
-    let query = supabase
+    let query = (supabase as any)
       .from('bookings')
       .select('id, check_in, check_out, status')
       .eq('house_id', houseId)
@@ -330,7 +330,7 @@ export async function checkBookingAvailability(
     const newCheckIn = new Date(checkIn);
     const newCheckOut = new Date(checkOut);
 
-    const hasConflict = data?.some(booking => {
+    const hasConflict = data?.some((booking: any) => {
       const existingCheckIn = new Date(booking.check_in);
       const existingCheckOut = new Date(booking.check_out);
 
