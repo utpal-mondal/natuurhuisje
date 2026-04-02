@@ -126,6 +126,17 @@ export function ListingWizard({ mode = 'create', existingListing = null }: { mod
 
         // Availability
         minNights: existingListing.minNights || 1,
+        maxNights: existingListing.maxNights || 364,
+        availabilityLimit: existingListing.availabilityLimit || '2_years',
+        checkInFrom: existingListing.checkInFrom || '15:00',
+        checkInUntil: existingListing.checkInUntil || '22:00',
+        checkOutFrom: existingListing.checkOutFrom || '07:00',
+        checkOutUntil: existingListing.checkOutUntil || '11:00',
+        minBookingDays: existingListing.minBookingDays || 0,
+
+        // Calendar Availability
+        arrivalDays: existingListing.arrivalDays || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        departureDays: existingListing.departureDays || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
 
         // Description
         description: existingListing.description || '',
@@ -205,6 +216,17 @@ export function ListingWizard({ mode = 'create', existingListing = null }: { mod
 
       // Availability
       minNights: 1,
+      maxNights: 364,
+      availabilityLimit: '2_years',
+      checkInFrom: '15:00',
+      checkInUntil: '22:00',
+      checkOutFrom: '07:00',
+      checkOutUntil: '11:00',
+      minBookingDays: 0,
+
+      // Calendar Availability
+      arrivalDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as string[],
+      departureDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as string[],
 
       // Description
       description: '',

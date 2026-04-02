@@ -3,13 +3,15 @@
 import { useState, useEffect } from 'react';
 import { Calendar, Plus, Trash2, Edit2, X, Check, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { SpecialPricing, CreateSpecialPricingData } from '@/types/special-pricing';
+import type { Locale } from '@/i18n/config';
 
 interface SpecialPricingManagerProps {
   houseId: number;
   regularPrice: number;
+  lang?: Locale;
 }
 
-export default function SpecialPricingManager({ houseId, regularPrice }: SpecialPricingManagerProps) {
+export default function SpecialPricingManager({ houseId, regularPrice, lang = 'nl' }: SpecialPricingManagerProps) {
   const [specialPricings, setSpecialPricings] = useState<SpecialPricing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
