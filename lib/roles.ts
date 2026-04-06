@@ -14,17 +14,23 @@ export async function getUserRole(userId: string): Promise<RoleName | null> {
   
   try {
     const { data, error } = await supabase
-      .from('users')
-      .select('role')
-      .eq('auth_user_id', userId)
+      .from('user_roles')
+      .select('role_name')
+      .eq('user_id', userId)
       .single();
 
     if (error || !data) {
-      console.error('Error fetching user role:', error);
+      console.error('Error fetching user role:', {
+        error,
+        userId,
+        errorMessage: error?.message,
+        errorDetails: error?.details,
+        noData: !data
+      });
       return null;
     }
 
-    return (data as any).role as RoleName;
+    return (data as any).role_name as RoleName;
   } catch (error) {
     console.error('Error in getUserRole:', error);
     return null;

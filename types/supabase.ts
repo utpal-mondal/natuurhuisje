@@ -539,40 +539,130 @@ export type Database = {
       }
       rooms: {
         Row: {
-          created_at: string | null
-          description: string | null
-          house_id: number | null
           id: number
-          max_person: number
-          name: string
+          house_id: number
+          room_name: string
+          room_type: string
+          room_number: string | null
+          floor_level: number | null
+          size_sqm: number | null
+          ceiling_height: number | null
+          bed_type: string | null
+          bed_count: number | null
+          max_occupants: number | null
+          has_private_bathroom: boolean | null
+          has_private_kitchen: boolean | null
+          has_private_entrance: boolean | null
+          has_balcony: boolean | null
+          has_terrace: boolean | null
+          has_air_conditioning: boolean | null
+          has_heating: boolean | null
+          has_tv: boolean | null
+          has_wifi: boolean | null
+          has_desk: boolean | null
+          has_wardrobe: boolean | null
+          has_safety_box: boolean | null
+          window_count: number | null
+          window_direction: string | null
+          has_blackout_curtains: boolean | null
+          is_wheelchair_accessible: boolean | null
+          has_ground_floor_access: boolean | null
+          description: string | null
           price_per_night: number | null
-          room_type: string | null
-          size_m2: number | null
+          min_nights: number | null
+          is_active: boolean | null
+          is_available: boolean | null
+          created_at: string | null
           updated_at: string | null
+          search_embedding: unknown | null
+          description_embedding: unknown | null
+          features_embedding: unknown | null
+          embedding_model: string | null
+          embedding_updated_at: string | null
         }
         Insert: {
-          created_at?: string | null
-          description?: string | null
-          house_id?: number | null
           id?: number
-          max_person?: number
-          name: string
+          house_id?: number
+          room_name: string
+          room_type: string
+          room_number?: string | null
+          floor_level?: number | null
+          size_sqm?: number | null
+          ceiling_height?: number | null
+          bed_type?: string | null
+          bed_count?: number | null
+          max_occupants?: number | null
+          has_private_bathroom?: boolean | null
+          has_private_kitchen?: boolean | null
+          has_private_entrance?: boolean | null
+          has_balcony?: boolean | null
+          has_terrace?: boolean | null
+          has_air_conditioning?: boolean | null
+          has_heating?: boolean | null
+          has_tv?: boolean | null
+          has_wifi?: boolean | null
+          has_desk?: boolean | null
+          has_wardrobe?: boolean | null
+          has_safety_box?: boolean | null
+          window_count?: number | null
+          window_direction?: string | null
+          has_blackout_curtains?: boolean | null
+          is_wheelchair_accessible?: boolean | null
+          has_ground_floor_access?: boolean | null
+          description?: string | null
           price_per_night?: number | null
-          room_type?: string | null
-          size_m2?: number | null
+          min_nights?: number | null
+          is_active?: boolean | null
+          is_available?: boolean | null
+          created_at?: string | null
           updated_at?: string | null
+          search_embedding?: unknown | null
+          description_embedding?: unknown | null
+          features_embedding?: unknown | null
+          embedding_model?: string | null
+          embedding_updated_at?: string | null
         }
         Update: {
-          created_at?: string | null
-          description?: string | null
-          house_id?: number | null
           id?: number
-          max_person?: number
-          name?: string
+          house_id?: number
+          room_name?: string
+          room_type?: string
+          room_number?: string | null
+          floor_level?: number | null
+          size_sqm?: number | null
+          ceiling_height?: number | null
+          bed_type?: string | null
+          bed_count?: number | null
+          max_occupants?: number | null
+          has_private_bathroom?: boolean | null
+          has_private_kitchen?: boolean | null
+          has_private_entrance?: boolean | null
+          has_balcony?: boolean | null
+          has_terrace?: boolean | null
+          has_air_conditioning?: boolean | null
+          has_heating?: boolean | null
+          has_tv?: boolean | null
+          has_wifi?: boolean | null
+          has_desk?: boolean | null
+          has_wardrobe?: boolean | null
+          has_safety_box?: boolean | null
+          window_count?: number | null
+          window_direction?: string | null
+          has_blackout_curtains?: boolean | null
+          is_wheelchair_accessible?: boolean | null
+          has_ground_floor_access?: boolean | null
+          description?: string | null
           price_per_night?: number | null
-          room_type?: string | null
-          size_m2?: number | null
+          min_nights?: number | null
+          is_active?: boolean | null
+          is_available?: boolean | null
+          created_at?: string | null
           updated_at?: string | null
+          search_embedding?: unknown | null
+          description_embedding?: unknown | null
+          features_embedding?: unknown | null
+          embedding_model?: string | null
+          embedding_updated_at?: string | null
         }
         Relationships: [
           {

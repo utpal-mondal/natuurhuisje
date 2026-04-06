@@ -3,19 +3,26 @@
 import { ReactNode } from 'react';
 import AccountSidebar from '@/components/AccountSidebar';
 import type { Locale } from '@/i18n/config';
+import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 
 interface AccountLayoutProps {
   children: ReactNode;
   lang: Locale;
   title?: string;
   subtitle?: string;
+  backButton?: {
+    href: string;
+    label?: string;
+  };
 }
 
 export default function AccountLayout({ 
   children, 
   lang, 
   title, 
-  subtitle 
+  subtitle,
+  backButton 
 }: AccountLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-50">
@@ -29,8 +36,21 @@ export default function AccountLayout({
           {/* Main Content */}
           <div className="flex-1 min-w-0">
             {/* Page Header */}
-            {(title || subtitle) && (
+            {(title || subtitle || backButton) && (
               <div className="mb-8">
+                {/* Back Button */}
+                {backButton && (
+                  <div className="mb-4">
+                    <Link
+                      href={backButton.href}
+                      className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      {backButton.label || "Back"}
+                    </Link>
+                  </div>
+                )}
+                
                 {title && (
                   <h1 className="text-3xl font-bold text-gray-900 mb-2">
                     {title}
