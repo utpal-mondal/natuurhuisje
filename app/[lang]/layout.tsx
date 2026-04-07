@@ -2,8 +2,7 @@ import type { Metadata } from 'next'
 import { Inter, Poppins } from 'next/font/google'
 import '../globals.css'
 
-import { Header } from '@/components/layout/Header'
-import { Footer } from '@/components/layout/Footer'
+import { RouteAwareChrome } from '@/components/layout/RouteAwareChrome'
 import { SearchProvider } from '@/contexts/SearchContext'
 import { i18n, type Locale } from '@/i18n/config'
 import { getDictionary } from '@/i18n/get-dictionary'
@@ -65,11 +64,7 @@ export default async function RootLayout({
     <html lang={validatedLang} className={[inter.variable, poppins.variable].join(' ')}>
       <body className="font-sans antialiased">
         <SearchProvider>
-          <Header lang={validatedLang} />
-          <main className="min-h-screen pt-20">
-            {children}
-          </main>
-          <Footer lang={validatedLang} />
+          <RouteAwareChrome lang={validatedLang}>{children}</RouteAwareChrome>
         </SearchProvider>
       </body>
     </html>

@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { uploadHouseImages, validateImageFile } from '@/lib/supabase-storage';
 import { saveListingToDatabase, updateListingToDatabase } from '@/lib/supabase-listings';
+import { getUserRole } from '@/lib/roles';
 import { createClient } from '@/utils/supabase/client';
 
 // Unified checkbox handler
@@ -333,6 +334,8 @@ export function ListingWizard({ mode = 'create', existingListing = null }: { mod
       }
 
       const userId = user.id;
+      const userRole = await getUserRole(userId);
+      const redirectPath = userRole === 'admin' ? '/admin/listings' : '/account/listings';
 
       console.log("Form data:", formData);
 
@@ -342,7 +345,7 @@ export function ListingWizard({ mode = 'create', existingListing = null }: { mod
         const result = await updateListingToDatabase(existingListing.id, formData, userId);
         if (result.success) {
           alert('Listing updated successfully!');
-          router.push('/account/listings');
+          router.push(redirectPath);
         } else {
           alert(`Error updating listing: ${result.error}`);
         }
@@ -352,7 +355,7 @@ export function ListingWizard({ mode = 'create', existingListing = null }: { mod
         const result = await saveListingToDatabase(formData, userId);
         if (result.success) {
           alert('Listing created successfully!');
-          router.push('/account/listings');
+          router.push(redirectPath);
         } else {
           alert(`Error creating listing: ${result.error}`);
         }

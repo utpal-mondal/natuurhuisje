@@ -6,6 +6,7 @@ import { Edit, Trash2, Eye, Plus, ChevronLeft, ChevronRight, MoreVertical, DoorO
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { getUserRole } from "@/lib/roles";
 
 interface Listing {
   id: string;
@@ -59,11 +60,19 @@ export function ListingList() {
         return;
       }
 
+      const role = await getUserRole(session.user.id);
+      const isAdmin = role === "admin";
+
       // Get total count first
-      const { count, error: countError } = await supabase
+      let countQuery = supabase
         .from("houses")
-        .select("id", { count: 'exact', head: true })
-        .eq('host_id', session.user.id);
+        .select("id", { count: 'exact', head: true });
+
+      if (!isAdmin) {
+        countQuery = countQuery.eq('host_id', session.user.id);
+      }
+
+      const { count, error: countError } = await countQuery;
 
       if (countError) {
         console.error("Error counting listings:", countError);
@@ -77,7 +86,7 @@ export function ListingList() {
       const from = (page - 1) * itemsPerPage;
       const to = from + itemsPerPage - 1;
 
-      const { data, error } = await supabase
+      let dataQuery = supabase
         .from("houses")
         .select(
           `
@@ -87,9 +96,15 @@ export function ListingList() {
               sort_order
             )
           `,
-        ).eq('host_id', session.user.id)
+        )
         .order("created_at", { ascending: false })
         .range(from, to);
+
+      if (!isAdmin) {
+        dataQuery = dataQuery.eq('host_id', session.user.id);
+      }
+
+      const { data, error } = await dataQuery;
 
       if (error) {
         console.error("Error fetching listings:", error);

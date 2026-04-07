@@ -207,17 +207,23 @@ export async function getUserBookings(userId?: string) {
     if (error) throw error;
     
     // Transform the data to match our interface
-    const transformedData: BookingWithHouse[] = data?.map((booking: any) => ({
-      ...booking,
-      house: {
-        ...booking.house,
-        images: booking.house.house_images 
-          ? booking.house.house_images
-              .sort((a: any, b: any) => a.sort_order - b.sort_order)
-              .map((img: any) => img.image_url)
-          : []
-      }
-    })) || [];
+    const transformedData: BookingWithHouse[] = data?.map((booking: any) => {
+      const house = booking.house || {};
+      const houseImages = Array.isArray(house.house_images) ? house.house_images : [];
+
+      return {
+        ...booking,
+        house: {
+          ...house,
+          id: house.id || booking.house_id,
+          title: house.title || 'Unknown Property',
+          location: house.location || 'Unknown location',
+          images: houseImages
+            .sort((a: any, b: any) => a.sort_order - b.sort_order)
+            .map((img: any) => img.image_url)
+        }
+      };
+    }) || [];
 
     return { success: true, data: transformedData };
   } catch (error) {
@@ -229,35 +235,17 @@ export async function getUserBookings(userId?: string) {
   }
 }
 
-export async function getHostBookings(hostId: string, page: number = 1, itemsPerPage: number = 10): Promise<PaginatedBookingsResponse> {
+export async function getHostBookings(hostId?: string, page: number = 1, itemsPerPage: number = 10): Promise<PaginatedBookingsResponse> {
   const supabase = createClient();
   
   try {
-    // First get all house IDs for this host
-    const { data: hostHouses, error: housesError } = await supabase
-      .from('houses')
-      .select('id')
-      .eq('host_id', hostId);
-
-    if (housesError) throw housesError;
-    
-    if (!hostHouses || hostHouses.length === 0) {
-      return { success: true, data: [], total: 0 };
-    }
-
-    const houseIds = hostHouses.map((h: any) => h.id);
-
-    // Get total count first
-    const { count, error: countError } = await (supabase as any)
-      .from('bookings')
-      .select('id', { count: 'exact', head: true })
-      .in('house_id', houseIds);
-
-    if (countError) throw countError;
-
-    // Get paginated data
     const offset = (page - 1) * itemsPerPage;
-    const { data, error } = await (supabase as any)
+
+    let countQuery = (supabase as any)
+      .from('bookings')
+      .select('id', { count: 'exact', head: true });
+
+    let dataQuery = (supabase as any)
       .from('bookings')
       .select(`
         *,
@@ -271,24 +259,55 @@ export async function getHostBookings(hostId: string, page: number = 1, itemsPer
           )
         )
       `)
-      .in('house_id', houseIds)
       .order('created_at', { ascending: false })
       .range(offset, offset + itemsPerPage - 1);
+
+    if (hostId) {
+      // First get all house IDs for this host
+      const { data: hostHouses, error: housesError } = await supabase
+        .from('houses')
+        .select('id')
+        .eq('host_id', hostId);
+
+      if (housesError) throw housesError;
+
+      if (!hostHouses || hostHouses.length === 0) {
+        return { success: true, data: [], total: 0 };
+      }
+
+      const houseIds = hostHouses.map((h: any) => h.id);
+      countQuery = countQuery.in('house_id', houseIds);
+      dataQuery = dataQuery.in('house_id', houseIds);
+    }
+
+    // Get total count first
+    const { count, error: countError } = await countQuery;
+
+    if (countError) throw countError;
+
+    // Get paginated data
+    const { data, error } = await dataQuery;
 
     if (error) throw error;
     
     // Transform the data to match our interface
-    const transformedData: BookingWithHouse[] = data?.map((booking: any) => ({
-      ...booking,
-      house: {
-        ...booking.house,
-        images: booking.house.house_images 
-          ? booking.house.house_images
-              .sort((a: any, b: any) => a.sort_order - b.sort_order)
-              .map((img: any) => img.image_url)
-          : []
-      }
-    })) || [];
+    const transformedData: BookingWithHouse[] = data?.map((booking: any) => {
+      const house = booking.house || {};
+      const houseImages = Array.isArray(house.house_images) ? house.house_images : [];
+
+      return {
+        ...booking,
+        house: {
+          ...house,
+          id: house.id || booking.house_id,
+          title: house.title || 'Unknown Property',
+          location: house.location || 'Unknown location',
+          images: houseImages
+            .sort((a: any, b: any) => a.sort_order - b.sort_order)
+            .map((img: any) => img.image_url)
+        }
+      };
+    }) || [];
 
     return { success: true, data: transformedData, total: count || 0 };
   } catch (error) {

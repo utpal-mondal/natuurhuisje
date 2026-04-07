@@ -53,6 +53,7 @@ export function Header({ user: propUser, lang }: HeaderProps) {
     display_name: string;
     avatar_url?: string;
   } | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [searchT, setSearchT] = useState<any>(null);
   const [rentOutT, setRentOutT] = useState<any>(null);
   const [headerT, setHeaderT] = useState<any>(null);
@@ -116,6 +117,20 @@ export function Header({ user: propUser, lang }: HeaderProps) {
             firstName && lastName ? `${firstName} ${lastName}` : "Account";
 
           setUserProfile({ display_name: displayName });
+        }
+
+        // get user role
+        const { data: userRole, error: userRoleError } = await supabase
+          .from("user_roles")
+          .select("role_name")
+          .eq("user_id", user.id)
+          .single<{ role_name: string }>();
+
+        if (userRoleError) {
+          console.error("Header - Error fetching user role:", userRoleError);
+        } else if (userRole) {
+          console.log("Header - User role:", userRole);
+          setUserRole(userRole.role_name);
         }
       } else {
         setUserProfile(null);
@@ -1066,7 +1081,7 @@ export function Header({ user: propUser, lang }: HeaderProps) {
                 </>
               ) : (
                 <Link
-                  href={`/${locale}/account`}
+                  href={`${userRole === "admin" ? `/${locale}/admin/dashboard` : `/${locale}/account`}`}
                   className="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg text-white transition-all hover:shadow-md"
                   style={{
                     background: "linear-gradient(135deg, #7B3FA0, #5B2D8E)",
