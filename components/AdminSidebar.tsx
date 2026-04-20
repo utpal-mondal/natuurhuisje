@@ -19,6 +19,8 @@ import {
   Shield,
   Menu,
   X,
+  MapPin,
+  Sparkles,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
@@ -144,6 +146,27 @@ export default function AdminSidebar({
         label: "Categories",
         icon: Layers,
         description: "Manage property categories",
+        roles: ["admin"] as RoleName[],
+      },
+      {
+        href: `/admin/mood`,
+        label: "Mood",
+        icon: Heart,
+        description: "Manage mood videos",
+        roles: ["admin"] as RoleName[],
+      },
+      {
+        href: `/admin/destination`,
+        label: "Destinations",
+        icon: MapPin,
+        description: "Manage destination videos",
+        roles: ["admin"] as RoleName[],
+      },
+      {
+        href: `/admin/experience`,
+        label: "Experiences",
+        icon: Sparkles,
+        description: "Manage seasonal & cultural experiences",
         roles: ["admin"] as RoleName[],
       },
       // {

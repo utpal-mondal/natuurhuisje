@@ -68,10 +68,13 @@ export async function GET() {
         id: listing.id,
         slug: listing.id.toString(), // Use ID as slug for now
         title: listing.accommodation_name,
+        property_type: listing.type || '',
         location: listing.location || 'Unknown location',
         images: images.length > 0 ? images : ['/images/default-house.jpg'],
         price_per_night: listing.price_per_night || 0,
+        max_person: listing.max_person || 0,
         avg_rating: ratingMap[listing.type] || 4.5, // Realistic placeholder rating
+        created_at: listing.created_at,
       };
     });
 

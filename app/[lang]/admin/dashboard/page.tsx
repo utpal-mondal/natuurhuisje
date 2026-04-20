@@ -15,22 +15,23 @@ import {
   Home,
 } from "lucide-react";
 
-export default async function AdminDashboard() {
+export default async function AdminDashboard({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
   const supabase = await createClient();
 
   // Check if user is logged in
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!session) {
-    redirect("/login");
+  if (!user) {
+    redirect(`/${lang}/admin/login`);
   }
 
   const { data: adminData } = await (supabase as any)
     .from("admin_users")
     .select("auth_user_id, role")
-    .eq("auth_user_id", session.user.id)
+    .eq("auth_user_id", user.id)
     .single();
 
   const isAdmin = adminData?.role === "admin";
@@ -41,7 +42,7 @@ export default async function AdminDashboard() {
     const { data } = await supabase
       .from("users")
       .select("*")
-      .eq("auth_user_id", session.user.id)
+      .eq("auth_user_id", user.id)
       .single();
     profile = data;
   } catch (error) {
@@ -55,7 +56,7 @@ export default async function AdminDashboard() {
     .order("created_at", { ascending: false });
 
   if (!isAdmin) {
-    propertiesQuery = propertiesQuery.eq("host_id", session.user.id);
+    propertiesQuery = propertiesQuery.eq("host_id", user.id);
   }
 
   const { data: properties } = await propertiesQuery;
@@ -74,7 +75,7 @@ export default async function AdminDashboard() {
     .order("check_in_date", { ascending: false });
 
   if (!isAdmin) {
-    bookingsQuery = bookingsQuery.eq("guest_id", session.user.id);
+    bookingsQuery = bookingsQuery.eq("guest_id", user.id);
   }
 
   const { data: bookings } = (await bookingsQuery) as { data: any[] | null };
@@ -94,7 +95,7 @@ export default async function AdminDashboard() {
     );
 
   if (!isAdmin) {
-    favoritesQuery = favoritesQuery.eq("user_id", session.user.id);
+    favoritesQuery = favoritesQuery.eq("user_id", user.id);
   }
 
   const { data: favorites } = (await favoritesQuery) as { data: any[] | null };
@@ -113,8 +114,16 @@ export default async function AdminDashboard() {
   const messageCount = 0; // TODO: Implement when messaging system is ready
 
   // Format user name - prioritize metadata since it's more reliable
-  const firstName = session.user.user_metadata?.first_name;
-  const lastName = session.user.user_metadata?.last_name;
+  const firstName = user.user_metadata?.first_name;
+  const lastName = user.user_metadata?.last_name;
+
+  if (!profile) {
+    profile = {
+      first_name: user.user_metadata?.first_name || "User",
+      last_name: user.user_metadata?.last_name || "",
+      email: user.email || "",
+    };
+  }
 
   const fullName =
     firstName && lastName

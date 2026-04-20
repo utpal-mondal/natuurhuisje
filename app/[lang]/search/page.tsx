@@ -18,6 +18,7 @@ function SearchContent() {
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState('recommended');
+  const [priceBounds, setPriceBounds] = useState<[number, number]>([0, 500]);
   const [priceRange, setPriceRange] = useState([0, 500]);
   const [selectedPropertyTypes, setSelectedPropertyTypes] = useState<string[]>([]);
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
@@ -34,18 +35,30 @@ function SearchContent() {
   useEffect(() => {
     const fetchListings = async () => {
       setLoading(true);
-      try {
-        const location = searchParams.get('location');
-        const checkin = searchParams.get('checkin');
-        const checkout = searchParams.get('checkout');
-        const guests = searchParams.get('guests');
-        
+      try {        
         const response = await fetch('/api/listings');
         const data = await response.json();
-        setListings(data.data || []);
+        const fetchedListings = data.data || [];
+        setListings(fetchedListings);
+
+        const prices = fetchedListings
+          .map((listing: any) => Number(listing.price_per_night))
+          .filter((price: number) => Number.isFinite(price) && price >= 0);
+
+        if (prices.length > 0) {
+          const minPrice = Math.floor(Math.min(...prices));
+          const maxPrice = Math.ceil(Math.max(...prices));
+          setPriceBounds([minPrice, maxPrice]);
+          setPriceRange([minPrice, maxPrice]);
+        } else {
+          setPriceBounds([0, 500]);
+          setPriceRange([0, 500]);
+        }
       } catch (error) {
         console.error('Error fetching listings:', error);
         setListings([]);
+        setPriceBounds([0, 500]);
+        setPriceRange([0, 500]);
       } finally {
         setLoading(false);
       }
@@ -93,10 +106,10 @@ function SearchContent() {
                 </div>
                 <input
                   type="range"
-                  min="0"
-                  max="500"
+                  min={priceBounds[0]}
+                  max={priceBounds[1]}
                   value={priceRange[1]}
-                  onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
+                  onChange={(e) => setPriceRange([priceBounds[0], parseInt(e.target.value)])}
                   className="w-full mt-3"
                 />
               </div>
