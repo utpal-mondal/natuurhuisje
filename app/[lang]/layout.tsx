@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const dict = await getDictionary(lang as Locale);
   
   return {
-    title: 'natuurhuisje - Find your perfect getaway in nature',
+    title: 'Demo hotel - Find your perfect getaway in nature',
     description: 'Discover and book unique nature accommodations: cabins, treehouses, glamping, and more in the most beautiful natural settings.',
     icons: {
       icon: '/images/fav.ico',

@@ -1077,16 +1077,16 @@ export function Header({ user: propUser, lang }: HeaderProps) {
               {!user ? (
                 <>
                   <Link
-                    href={`/${locale}/rent-out`}
+                    href={`/${locale}/admin/login`}
                     className="text-sm font-medium px-4 py-2 rounded-lg text-gray-900 hover:bg-gray-100 transition-colors"
                   >
-                    Rent out
+                    Admin login
                   </Link>
                   <Link
                     href={`/${locale}/login`}
                     className="text-sm font-medium px-4 py-2 rounded-lg text-gray-900 hover:bg-gray-100 transition-colors"
                   >
-                    To register
+                    Landloard login
                   </Link>
                 </>
               ) : (

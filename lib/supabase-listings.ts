@@ -401,7 +401,7 @@ export async function updateListingToDatabase(listingId: string, data: ListingDa
       throw new Error('Invalid listing ID');
     }
 
-    // First, verify the user owns this listing
+    // First, verify the listing exists and who owns it
     const { data: existingHouse, error: fetchError } = await (supabase as any)
       .from('houses')
       .select('id, host_id')
@@ -412,8 +412,9 @@ export async function updateListingToDatabase(listingId: string, data: ListingDa
       throw new Error('Listing not found');
     }
 
-    if (existingHouse.host_id !== userId) {
-      throw new Error('You do not have permission to update this listing');
+    const isOwner = existingHouse.host_id === userId;
+    if (!isOwner) {
+      throw new Error('Only the host of this house can edit this listing');
     }
 
     // Update the main house record

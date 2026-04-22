@@ -79,6 +79,7 @@ export function ListingWizard({ mode = 'create', existingListing = null }: { mod
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState('general');
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState(() => {
     if (mode === 'edit' && existingListing) {
@@ -301,7 +302,7 @@ export function ListingWizard({ mode = 'create', existingListing = null }: { mod
       case 'sustainability':
         return <SustainabilityStep data={formData} updateData={setFormData} onNext={() => handleNext('sustainability')} onPrevious={() => handlePrevious('sustainability')} />;
       case 'house_rules':
-        return <HouseRulesStep data={formData} updateData={setFormData} onNext={() => handleNext('house_rules')} onPrevious={() => handlePrevious('house_rules')} mode={mode} existingListing={existingListing} onSave={handleSave} />;
+        return <HouseRulesStep data={formData} updateData={setFormData} onNext={() => handleNext('house_rules')} onPrevious={() => handlePrevious('house_rules')} mode={mode} existingListing={existingListing} onSave={handleSave} isSubmitting={isSubmitting} />;
       default:
         return <GeneralStep data={formData} updateData={setFormData} onNext={() => handleNext('general')} onPrevious={() => handlePrevious('general')} />;
     }
@@ -323,6 +324,9 @@ export function ListingWizard({ mode = 'create', existingListing = null }: { mod
   };
 
   const handleSave = async () => {
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
     try {
       // Get current authenticated user
       const supabase = createClient();
@@ -342,12 +346,31 @@ export function ListingWizard({ mode = 'create', existingListing = null }: { mod
       if (mode === 'edit' && existingListing) {
         // Update existing listing
         console.log('Updating listing:', existingListing.id, formData);
-        const result = await updateListingToDatabase(existingListing.id, formData, userId);
-        if (result.success) {
-          alert('Listing updated successfully!');
-          router.push(redirectPath);
-        } else {
-          alert(`Error updating listing: ${result.error}`);
+        if (userRole === 'admin') {
+          const response = await fetch(`/api/admin/listings/${existingListing.id}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ data: formData }),
+          });
+          const result = await response.json();
+
+          if (response.ok && result.success) {
+            alert('Listing updated successfully!');
+            router.push(redirectPath);
+          } else {
+            alert(`Error updating listing: ${result.error || 'Failed to update listing'}`);
+          }
+        }
+        else {
+          const result = await updateListingToDatabase(existingListing.id, formData, userId);
+          if (result.success) {
+            alert('Listing updated successfully!');
+            router.push(redirectPath);
+          } else {
+            alert(`Error updating listing: ${result.error}`);
+          }
         }
       } else {
         // Create new listing
@@ -363,6 +386,8 @@ export function ListingWizard({ mode = 'create', existingListing = null }: { mod
     } catch (error) {
       console.error('Error saving listing:', error);
       alert('Failed to save listing. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -4147,7 +4172,7 @@ function SustainabilityStep({ data, updateData, onNext, onPrevious }: any) {
   );
 }
 
-function HouseRulesStep({ data, updateData, onNext, onPrevious, mode = 'create', existingListing = null, onSave }: any) {
+function HouseRulesStep({ data, updateData, onNext, onPrevious, mode = 'create', existingListing = null, onSave, isSubmitting = false }: any) {
   const [showMore, setShowMore] = useState(false);
 
   const updateRule = (field: string, value: any) => {
@@ -4339,9 +4364,10 @@ function HouseRulesStep({ data, updateData, onNext, onPrevious, mode = 'create',
         </button>
         <button 
           onClick={onSave}
-          className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors"
+          disabled={isSubmitting}
+          className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          {mode === 'edit' ? 'Save Changes' : 'Create Listing'}
+          {isSubmitting ? 'Saving...' : mode === 'edit' ? 'Save Changes' : 'Create Listing'}
         </button>
       </div>
     </div>
