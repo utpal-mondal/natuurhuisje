@@ -142,17 +142,82 @@ export default function Home({ params }: { params: Promise<{ lang: string }> }) 
   }, []);
 
   useEffect(() => {
-    fetch(`/data/listings-${lang}.json`)
-      .then(response => response.json())
-      .then((jsonData: DataType) => {
-        setData(jsonData);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const { data: housesData, error: housesError } = await supabase
+          .from('houses')
+          .select('id, accommodation_name, type, location, price_per_night, created_at')
+          .order('created_at', { ascending: false })
+          .limit(8);
+
+        if (housesError) {
+          console.error('Error fetching homepage listings:', {
+            message: housesError.message,
+            details: housesError.details,
+            hint: housesError.hint,
+            code: housesError.code,
+          });
+
+          const fallbackResponse = await fetch('/api/listings');
+          const fallbackJson = await fallbackResponse.json();
+          const fallbackListings: Listing[] = (fallbackJson?.data || []).slice(0, 8);
+
+          setData({
+            featuredListings: fallbackListings,
+            destinations: [],
+          });
+          return;
+        }
+
+        const houseIds = (housesData || []).map((house: any) => house.id);
+        let houseImages: Array<{ house_id: string | number; image_url: string }> = [];
+
+        if (houseIds.length > 0) {
+          const { data: imagesData, error: imagesError } = await supabase
+            .from('house_images')
+            .select('house_id, image_url, sort_order')
+            .in('house_id', houseIds)
+            .order('sort_order', { ascending: true });
+
+          if (imagesError) {
+            console.error('Error fetching house images:', imagesError);
+          } else {
+            houseImages = imagesData || [];
+          }
+        }
+
+        const transformedListings: Listing[] = (housesData || []).map((house: any) => {
+          const listingImages = houseImages
+            .filter((img) => img.house_id === house.id)
+            .map((img) => img.image_url);
+
+          return {
+            id: String(house.id),
+            slug: String(house.id),
+            title: house.accommodation_name || 'Untitled listing',
+            location: house.location || 'Unknown location',
+            images: listingImages.length > 0 ? listingImages : ['/images/default-house.jpg'],
+            price_per_night: Number(house.price_per_night) || 0,
+            avg_rating: 4.5,
+            is_published: true,
+          };
+        });
+
+        setData({
+          featuredListings: transformedListings,
+          destinations: [],
+        });
+      } catch (error) {
+        console.error('Error fetching homepage data:', error);
+        setData({ featuredListings: [], destinations: [] });
+      } finally {
         setLoading(false);
-      })
-      .catch(error => {
-        console.error('Error loading data:', error);
-        setLoading(false);
-      });
-  }, [lang]);
+      }
+    };
+
+    fetchData();
+  }, [lang, supabase]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -280,6 +345,41 @@ export default function Home({ params }: { params: Promise<{ lang: string }> }) 
     fetchExperienceShowcase();
   }, [supabase]);
 
+  const scrollNatureHouses = (direction: 'left' | 'right') => {
+    if (natureHousesRef.current) {
+      const scrollAmount = 280;
+      const newScrollPosition = natureHousesRef.current.scrollLeft + (direction === 'right' ? scrollAmount : -scrollAmount);
+      natureHousesRef.current.scrollTo({
+        left: newScrollPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const scrollCountries = (direction: 'left' | 'right') => {
+    if (countriesRef.current) {
+      const scrollAmount = 280;
+      const newScrollPosition = countriesRef.current.scrollLeft + (direction === 'right' ? scrollAmount : -scrollAmount);
+      countriesRef.current.scrollTo({
+        left: newScrollPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const scrollRegions = (direction: 'left' | 'right') => {
+    if (regionsRef.current) {
+      const scrollAmount = 280;
+      const newScrollPosition = regionsRef.current.scrollLeft + (direction === 'right' ? scrollAmount : -scrollAmount);
+      regionsRef.current.scrollTo({
+        left: newScrollPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const featuredListings = data.featuredListings;
+  const destinations = data.destinations;
   const latestMoods = moods.slice(0, 8);
   const latestDestinations = destinationShowcase.slice(0, 6);
   const latestExperiences = experienceShowcase.slice(0, 5);
@@ -371,7 +471,7 @@ export default function Home({ params }: { params: Promise<{ lang: string }> }) 
       </section>
 
       {/* Category show */}
-      <section className="py-3 bg-white">
+      {/* <section className="py-3 bg-white">
         <div className="container-custom">
           <div className="overflow-x-auto">
             <div className="flex gap-4 pb-2" style={{ minWidth: 'max-content' }}>
@@ -406,10 +506,10 @@ export default function Home({ params }: { params: Promise<{ lang: string }> }) 
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* mood section */}
-      <section className="py-14 bg-[#f5f5f3]">
+      {/* <section className="py-14 bg-[#f5f5f3]">
         <div className="container-custom">
           <div className="mb-8">
             <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-gray-900">Explore experiences based on your mood</h2>
@@ -462,10 +562,10 @@ export default function Home({ params }: { params: Promise<{ lang: string }> }) 
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* destination section */}
-      <section className="py-14 bg-white">
+      {/* <section className="py-14 bg-white">
         <div className="container-custom">
           <div className="mb-8">
             <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-gray-900">Explore Pilgrimage Destinations</h2>
@@ -507,58 +607,484 @@ export default function Home({ params }: { params: Promise<{ lang: string }> }) 
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* experience section */}
-      <section className="py-14 bg-[#f5f5f3]">
+      {/* <section className="py-14 bg-[#f5f5f3]">
         <div className="container-custom">
           <div className="mb-8">
             <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-gray-900">Seasonal escapes &amp; cultural experiences</h2>
             <p className="mt-1.5 text-sm md:text-base text-gray-600">Experience rich traditions and vibrant celebrations</p>
           </div>
 
-          <div className="overflow-x-auto scrollbar-hide">
-            <div className="flex gap-4 pb-3 snap-x snap-mandatory" style={{ minWidth: 'max-content' }}>
-              {latestExperiences.map((item) => (
-                <article key={item.id} className="relative h-80 w-[220px] shrink-0 overflow-hidden rounded-xl snap-start sm:w-[230px]">
-                  {item.video_url ? (
-                    <img
-                      src={item.video_url}
-                      alt={item.title}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="h-full w-full bg-gray-300" />
-                  )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            {latestExperiences.map((item) => (
+              <article key={item.id} className="relative overflow-hidden rounded-xl h-80">
+                {item.video_url ? (
+                  <img
+                    src={item.video_url}
+                    alt={item.title}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="h-full w-full bg-gray-300" />
+                )}
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
 
-                  <div className="absolute inset-x-0 bottom-0 p-4 text-white">
-                    <h3 className="text-2xl font-semibold leading-tight">{item.title}</h3>
-                    <p className="mt-1 text-sm text-white/90 line-clamp-1">{item.description || 'Immersive cultural stay experiences.'}</p>
+                <div className="absolute inset-x-0 bottom-0 p-4 text-white">
+                  <h3 className="text-2xl font-semibold leading-tight">{item.title}</h3>
+                  <p className="mt-1 text-sm text-white/90 line-clamp-1">{item.description || 'Immersive cultural stay experiences.'}</p>
 
-                    <Link
-                      href={`/${lang}/search`}
-                      className="mt-3 inline-flex items-center gap-1 rounded-md bg-[hsl(var(--primary))] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[hsl(270_55%_42%)]"
-                    >
-                      Packages
-                      <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
+                  <Link
+                    href={`/${lang}/search`}
+                    className="mt-3 inline-flex items-center gap-1 rounded-md bg-[hsl(var(--primary))] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[hsl(270_55%_42%)]"
+                  >
+                    Packages
+                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section> */}
+      
+      {/* Aanbevolen Accommodaties Sectie */}
+      <section className="py-20 bg-white">
+        <div className="container-custom">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12 gap-4">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 font-poppins">{t.sections.oftenBooked}</h2>
+            </div>
+            <Link href={`/${lang}/search`} className="text-purple-600 hover:text-purple-700 font-medium text-sm flex items-center gap-1 transition-colors">
+              {t.sections.viewAll}
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+            </Link>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-7">
+            {!loading && featuredListings.length > 0 ? (
+              featuredListings.map((listing) => (
+                <ListingCard
+                  key={listing.id}
+                  id={listing.id}
+                  slug={listing.slug}
+                  title={listing.title}
+                  location={listing.location}
+                  images={listing.images}
+                  pricePerNight={listing.price_per_night}
+                  rating={listing.avg_rating}
+                  lang={lang}
+                />
+              ))
+            ) : (
+              Array.from({ length: 6 }).map((_, i) => (
+                <div 
+                  key={i} 
+                  className="bg-white rounded-2xl overflow-hidden h-80 flex flex-col card-shadow"
+                >
+                  <div className="h-48 image-placeholder"></div>
+                  <div className="p-5 flex-1">
+                    <div className="h-4 bg-stone-200 rounded-full w-3/4 mb-3"></div>
+                    <div className="h-3 bg-stone-100 rounded-full w-1/2 mb-4"></div>
+                    <div className="h-4 bg-stone-200 rounded-full w-1/3 mt-auto"></div>
                   </div>
-                </article>
-              ))}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+      
+      {/* Ontdek Natuurhuisjes Sectie */}
+      <section className="py-20 bg-gray-50">
+        <div className="container-custom">
+          <div className="mb-12">
+            <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 font-poppins text-center">{t.sections.exploreByDestination}</h2>
+          </div>
+          
+          <div className="relative">
+            {/* Navigation Arrows */}
+            <button 
+              onClick={() => scrollNatureHouses('left')}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-10 h-10 rounded-full bg-gray-800 shadow-lg flex items-center justify-center hover:bg-gray-700 transition-colors"
+            >
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button 
+              onClick={() => scrollNatureHouses('right')}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-10 h-10 rounded-full bg-gray-800 shadow-lg flex items-center justify-center hover:bg-gray-700 transition-colors"
+            >
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+
+            {/* Carousel Container */}
+            <div ref={natureHousesRef} className="overflow-x-auto scrollbar-hide">
+              <div className="flex gap-4 pb-4">
+                {carouselData.natureHouses.length > 0 ? carouselData.natureHouses.map((item) => (
+                  <Link 
+                    key={item.id}
+                    href={item.href}
+                    className="group block flex-shrink-0 w-72"
+                  >
+                    <div className="relative h-48 overflow-hidden rounded-2xl shadow-md hover:shadow-xl transition-all duration-300">
+                      <img 
+                        src={item.image}
+                        alt={item.label}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-b from-black/10 to-black/30"></div>
+                      <div className="absolute top-4 left-4">
+                        <span className="inline-block px-4 py-2 bg-white rounded-full text-sm font-semibold text-gray-900">
+                          {item.label}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                )) : (
+                  <div className="flex gap-4 pb-4">
+                    <div className="text-gray-500 text-center py-8">Carousel data wordt geladen...</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      {/* Meest Bezochte Landen Sectie */}
+      <section className="py-20 bg-white">
+        <div className="container-custom">
+          <div className="mb-8">
+            <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 font-poppins text-center">{t.sections.mostVisitedCountries}</h2>
+          </div>
+          
+          <div className="relative">
+            {/* Navigation Arrows */}
+            <button 
+              onClick={() => scrollCountries('left')}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-10 h-10 rounded-full bg-gray-800 shadow-lg flex items-center justify-center hover:bg-gray-700 transition-colors"
+            >
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button 
+              onClick={() => scrollCountries('right')}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-10 h-10 rounded-full bg-gray-800 shadow-lg flex items-center justify-center hover:bg-gray-700 transition-colors"
+            >
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+
+            {/* Carousel Container */}
+            <div ref={countriesRef} className="overflow-x-auto scrollbar-hide">
+              <div className="flex gap-4 pb-4">
+                {carouselData.countries.map((item) => (
+                  <Link 
+                    key={item.id}
+                    href={item.href}
+                    className="group block flex-shrink-0 w-72"
+                  >
+                    <div className="relative h-48 overflow-hidden rounded-2xl shadow-md hover:shadow-xl transition-all duration-300">
+                      <img 
+                        src={item.image}
+                        alt={item.label}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-b from-black/10 to-black/30"></div>
+                      <div className="absolute top-4 left-4">
+                        <span className="inline-block px-4 py-2 bg-white rounded-full text-sm font-semibold text-gray-900">
+                          {item.label}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Populaire Regio's Sectie */}
+      <section className="py-20 bg-gray-50">
+        <div className="container-custom">
+          <div className="mb-8">
+            <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 font-poppins text-center">{t.sections.popularRegions}</h2>
+          </div>
+          
+          <div className="relative">
+            {/* Navigation Arrows */}
+            <button 
+              onClick={() => scrollRegions('left')}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-10 h-10 rounded-full bg-gray-800 shadow-lg flex items-center justify-center hover:bg-gray-700 transition-colors"
+            >
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button 
+              onClick={() => scrollRegions('right')}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-10 h-10 rounded-full bg-gray-800 shadow-lg flex items-center justify-center hover:bg-gray-700 transition-colors"
+            >
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+
+            {/* Carousel Container */}
+            <div ref={regionsRef} className="overflow-x-auto scrollbar-hide">
+              <div className="flex gap-4 pb-4">
+                {carouselData.regions.map((item) => (
+                  <Link 
+                    key={item.id}
+                    href={item.href}
+                    className="group block flex-shrink-0 w-72"
+                  >
+                    <div className="relative h-48 overflow-hidden rounded-2xl shadow-md hover:shadow-xl transition-all duration-300">
+                      <img 
+                        src={item.image}
+                        alt={item.label}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-b from-black/10 to-black/30"></div>
+                      <div className="absolute top-4 left-4">
+                        <span className="inline-block px-4 py-2 bg-white rounded-full text-sm font-semibold text-gray-900">
+                          {item.label}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Recently Viewed Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="container-custom">
+          <div className="mb-12">
+            <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 font-poppins">{t.sections.recentlyViewed}</h2>
+            <p className="text-gray-600 mt-2">{t.sections.continueWhereYouLeftOff}</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {loading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="bg-stone-200 rounded-2xl h-64 mb-4"></div>
+                  <div className="space-y-3">
+                    <div className="h-4 bg-stone-200 rounded-full w-3/4"></div>
+                    <div className="h-4 bg-stone-200 rounded-full w-1/2"></div>
+                    <div className="h-4 bg-stone-200 rounded-full w-1/3 mt-auto"></div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              featuredListings.slice(4, 8).map((listing) => (
+                <ListingCard
+                  key={listing.id}
+                  id={listing.id}
+                  slug={listing.slug}
+                  title={listing.title}
+                  location={listing.location}
+                  images={listing.images}
+                  pricePerNight={listing.price_per_night}
+                  rating={listing.avg_rating}
+                  lang={lang}
+                />
+              ))
+            )}
+          </div>
+
+          <div className="text-center mt-10">
+            <Link 
+              href={`/${lang}/search`}
+              className="inline-flex items-center gap-2 px-8 py-3 border-2 border-gray-900 text-gray-900 rounded-xl hover:bg-gray-900 hover:text-white transition-colors font-medium"
+            >
+              {t.sections.browseMore}
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </Link>
+          </div>
+        </div>
+      </section>
+      
+      {/* Want to Rent Out Your Place Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="container-custom">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 font-poppins">{t.rentOut.title}</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto">
+            {/* Contribute to Conservation */}
+            <div className="text-center">
+              <div className="mb-6 flex justify-center">
+                <img 
+                  src="/images/rent-out_behoud-natuur.png" 
+                  alt="Contribute to conservation" 
+                  className="h-32 w-auto object-contain"
+                  onError={(e) => {
+                    e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"%3E%3Crect fill="%2334D399" width="120" height="120" rx="60"/%3E%3Cpath fill="white" d="M60 30c-5 0-10 2-13 6l-15 18c-2 3-2 7 0 10l15 18c3 4 8 6 13 6s10-2 13-6l15-18c2-3 2-7 0-10l-15-18c-3-4-8-6-13-6z"/%3E%3C/svg%3E';
+                  }}
+                />
+              </div>
+              <h3 className="text-xl font-semibold mb-3 text-gray-900 font-poppins">{t.rentOut.conservation.title}</h3>
+              <p className="text-gray-600 leading-relaxed">{t.rentOut.conservation.description}</p>
+            </div>
+            
+            {/* Reach Target Group */}
+            <div className="text-center">
+              <div className="mb-6 flex justify-center">
+                <img 
+                  src="/images/rent-out_juiste-doelgroep.png" 
+                  alt="Reach the right target group" 
+                  className="h-32 w-auto object-contain"
+                  onError={(e) => {
+                    e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"%3E%3Ccircle fill="%2334D399" cx="60" cy="40" r="15"/%3E%3Cpath fill="%2334D399" d="M60 60c-15 0-27 8-27 18v12h54V78c0-10-12-18-27-18z"/%3E%3Cpath fill="%2310B981" d="M45 75l8 8 15-15"/%3E%3C/svg%3E';
+                  }}
+                />
+              </div>
+              <h3 className="text-xl font-semibold mb-3 text-gray-900 font-poppins">{t.rentOut.targetGroup.title}</h3>
+              <p className="text-gray-600 leading-relaxed">{t.rentOut.targetGroup.description}</p>
+            </div>
+            
+            {/* You Decide */}
+            <div className="text-center">
+              <div className="mb-6 flex justify-center">
+                <img 
+                  src="/images/rent-out_jij-bepaalt.png" 
+                  alt="You decide" 
+                  className="h-32 w-auto object-contain"
+                  onError={(e) => {
+                    e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"%3E%3Crect fill="%2310B981" x="30" y="40" width="60" height="50" rx="5"/%3E%3Crect fill="%2334D399" x="40" y="30" width="40" height="8" rx="2"/%3E%3Cpath fill="white" d="M50 60h20M50 70h15M50 80h20" stroke="white" stroke-width="3"/%3E%3C/svg%3E';
+                  }}
+                />
+              </div>
+              <h3 className="text-xl font-semibold mb-3 text-gray-900 font-poppins">{t.rentOut.youDecide.title}</h3>
+              <p className="text-gray-600 leading-relaxed">{t.rentOut.youDecide.description}</p>
             </div>
           </div>
 
-          <div className="mt-3 flex items-center justify-center gap-2">
-            {latestExperiences.map((item, index) => (
-              <span
-                key={`exp-dot-${item.id}`}
-                className={`h-1.5 w-1.5 rounded-full ${index === 0 ? 'bg-[hsl(var(--primary))]' : 'bg-gray-300'}`}
+          {/* CTA Button */}
+          <div className="text-center mt-12">
+            <Link 
+              href={`/${lang}/host`}
+              className="inline-flex items-center gap-2 px-10 py-4 rounded-xl text-white font-semibold text-lg transition-all hover:shadow-lg hover:-translate-y-0.5"
+              style={{ background: '#5B2D8E' }}
+            >
+              {t.rentOut.moreInfo}
+            </Link>
+          </div>
+        </div>
+      </section>
+      
+      {/* Biodiversity Protection Section */}
+      <section className="relative py-32 bg-cover bg-center" style={{ backgroundImage: 'url(/images/pexels-justin-wolfert.jpg)' }}>
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-black/40"></div>
+        
+        <div className="container-custom relative z-10">
+          <div className="max-w-2xl">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight font-poppins">
+              {t.biodiversity.title}
+            </h2>
+            <p className="text-lg text-white mb-8 leading-relaxed">
+              {t.biodiversity.description}
+            </p>
+            <Link 
+              href={`/${lang}/biodiversity`}
+              className="inline-flex items-center gap-2 px-8 py-3 rounded-xl text-white font-semibold transition-all hover:shadow-lg"
+              style={{ background: '#C084FC' }}
+            >
+              {t.biodiversity.moreInfo}
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Holiday Home in Nature Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="container-custom">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8 font-poppins">
+              {t.holidayHome.title}
+            </h2>
+            <div className="text-gray-700 leading-relaxed space-y-4 text-base">
+              <p>
+                {t.holidayHome.paragraph1}
+              </p>
+              <p>
+                {t.holidayHome.paragraph2}
+              </p>
+            </div>
+            <div className="mt-8">
+              <Link 
+                href={`/${lang}/about`}
+                className="inline-flex items-center gap-2 text-gray-900 font-semibold hover:text-purple-700 transition-colors"
+              >
+                {t.holidayHome.moreAboutUs}
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Newsletter Section */}
+      <section className="py-16 bg-white">
+        <div className="container-custom">
+          <div className="max-w-4xl mx-auto rounded-3xl p-12 text-center" style={{ background: 'linear-gradient(135deg, #F9A8D4, #F0ABFC, #E9D5FF)' }}>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8 font-poppins">
+              {t.newsletter.title}
+            </h2>
+            
+            <form className="flex flex-col md:flex-row gap-4 justify-center items-center mb-6">
+              <input 
+                type="text" 
+                placeholder={t.newsletter.firstNamePlaceholder}
+                className="px-6 py-3 rounded-lg border-b-2 border-gray-900 bg-transparent placeholder:text-gray-700 outline-none focus:border-purple-700 transition-colors w-full md:w-64"
               />
-            ))}
+              <input 
+                type="email" 
+                placeholder={t.newsletter.emailPlaceholder}
+                className="px-6 py-3 rounded-lg border-b-2 border-gray-900 bg-transparent placeholder:text-gray-700 outline-none focus:border-purple-700 transition-colors w-full md:w-64"
+              />
+              <button 
+                type="submit"
+                className="px-8 py-3 rounded-xl text-white font-semibold transition-all hover:shadow-lg whitespace-nowrap"
+                style={{ background: '#5B2D8E' }}
+              >
+                {t.newsletter.subscribe}
+              </button>
+            </form>
+
+            <div className="flex items-center justify-center gap-2 text-sm text-gray-700">
+              <input 
+                type="checkbox" 
+                id="privacy" 
+                className="w-4 h-4 rounded border-gray-900"
+              />
+              <label htmlFor="privacy">
+                {t.newsletter.privacyText} <Link href={`/${lang}/privacy`} className="underline hover:text-purple-700">{t.newsletter.privacyLink}</Link>.
+              </label>
+            </div>
           </div>
         </div>
       </section>
