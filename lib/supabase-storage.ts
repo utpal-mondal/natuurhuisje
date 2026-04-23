@@ -217,15 +217,6 @@ export async function deleteImage(
  * @returns Validation result
  */
 export function validateImageFile(file: File): { valid: boolean; error?: string } {
-  // Check file size (5MB max)
-  const maxSize = 5 * 1024 * 1024
-  if (file.size > maxSize) {
-    return {
-      valid: false,
-      error: 'File size must be less than 5MB'
-    }
-  }
-
   // Check file type
   const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
   if (!allowedTypes.includes(file.type)) {

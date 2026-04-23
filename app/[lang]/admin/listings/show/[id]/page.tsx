@@ -73,9 +73,9 @@ export default function AdminShowListingPage() {
   const [categoryMessage, setCategoryMessage] = useState<string | null>(null);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [categorySearch, setCategorySearch] = useState("");
-  const [bookingChartData, setBookingChartData] = useState<BookingMetricPoint[]>(
-    [],
-  );
+  const [bookingChartData, setBookingChartData] = useState<
+    BookingMetricPoint[]
+  >([]);
   const [bookingTotals, setBookingTotals] = useState({
     totalBookings: 0,
     totalSales: 0,
@@ -172,7 +172,10 @@ export default function AdminShowListingPage() {
       (sum, point) => sum + point.bookingCount,
       0,
     );
-    const totalSales = chartPoints.reduce((sum, point) => sum + point.salesAmount, 0);
+    const totalSales = chartPoints.reduce(
+      (sum, point) => sum + point.salesAmount,
+      0,
+    );
 
     setBookingChartData(chartPoints);
     setBookingTotals({ totalBookings, totalSales });
@@ -266,7 +269,25 @@ export default function AdminShowListingPage() {
   const allImages = Array.from(new Set([...relatedImages, ...legacyImages]));
   const heroImage = allImages[0] || "";
   const visibleFields = Object.entries(listing).filter(
-    ([key]) => key !== "house_images",
+    ([key]) =>
+      key !== "house_images" &&
+      key !== "id" &&
+      key !== "created_at" &&
+      key !== "special_pricing" &&
+      key !== "registration_number_option" &&
+      key !== "status" &&
+      key !== "updated_at" &&
+      key !== "search_embedding" &&
+      key !== "host_id" &&
+      key !== "search_vector" &&
+      key !== "embedding_model" &&
+      key !== "embedding_updated_at" &&
+      key !== "amenities_embedding" &&
+      key !== "embedding_model" &&
+      key !== "location_embedding" &&
+      key !== "description_embedding" &&
+      key !== "safety_deposit" &&
+      key !== "land_registration_option",
   );
 
   const formatValue = (value: unknown) => {
@@ -279,6 +300,54 @@ export default function AdminShowListingPage() {
       return JSON.stringify(value, null, 2);
     }
     return JSON.stringify(value, null, 2);
+  };
+
+  const formatFieldLabel = (key: string) =>
+    key
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+
+  const normalizeTextArrayValue = (value: unknown): string[] => {
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => (typeof item === "string" ? item.trim() : String(item)))
+        .filter(Boolean);
+    }
+
+    if (typeof value !== "string") {
+      return [];
+    }
+
+    const raw = value.trim();
+    if (!raw) return [];
+
+    // Handles Postgres text[] format like {wifi,tv} or plain comma/newline text.
+    const cleaned = raw.startsWith("{") && raw.endsWith("}")
+      ? raw.slice(1, -1)
+      : raw;
+
+    return cleaned
+      .split(/,|\n/)
+      .map((item) => item.replace(/^"|"$/g, "").trim())
+      .filter(Boolean);
+  };
+
+  const specialPricingEntries = [...(listing.special_pricing || [])].sort(
+    (a, b) =>
+      new Date(a.start_date).getTime() - new Date(b.start_date).getTime(),
+  );
+
+  const getSpecialPricingStatusClass = (status?: string | null) => {
+    if (status === "active") {
+      return "bg-emerald-100 text-emerald-700";
+    }
+    if (status === "inactive") {
+      return "bg-slate-100 text-slate-700";
+    }
+    if (status === "draft") {
+      return "bg-amber-100 text-amber-700";
+    }
+    return "bg-blue-100 text-blue-700";
   };
 
   const filteredCategories = allCategories.filter((category) =>
@@ -309,7 +378,10 @@ export default function AdminShowListingPage() {
     1,
     ...bookingChartData.map((point) => point.bookingCount),
   );
-  const maxSalesAmount = Math.max(1, ...bookingChartData.map((point) => point.salesAmount));
+  const maxSalesAmount = Math.max(
+    1,
+    ...bookingChartData.map((point) => point.salesAmount),
+  );
 
   const toggleCategorySelection = (categoryId: number) => {
     setSelectedCategoryIds((prev) =>
@@ -445,7 +517,9 @@ export default function AdminShowListingPage() {
 
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h3 className="text-lg font-semibold text-slate-900">Bookings & Sales</h3>
+          <h3 className="text-lg font-semibold text-slate-900">
+            Bookings & Sales
+          </h3>
           <p className="text-xs text-slate-500">Last 7 days (date-wise)</p>
         </div>
 
@@ -461,11 +535,17 @@ export default function AdminShowListingPage() {
           <>
             <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="rounded-xl border border-blue-100 bg-blue-50/70 p-3 transition-all duration-500 hover:-translate-y-0.5">
-                <p className="text-xs font-medium text-blue-600">Bookings Count</p>
-                <p className="mt-1 text-2xl font-semibold text-blue-700">{bookingTotals.totalBookings}</p>
+                <p className="text-xs font-medium text-blue-600">
+                  Bookings Count
+                </p>
+                <p className="mt-1 text-2xl font-semibold text-blue-700">
+                  {bookingTotals.totalBookings}
+                </p>
               </div>
               <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-3 transition-all duration-500 hover:-translate-y-0.5">
-                <p className="text-xs font-medium text-emerald-600">Sales (EUR)</p>
+                <p className="text-xs font-medium text-emerald-600">
+                  Sales (EUR)
+                </p>
                 <p className="mt-1 text-2xl font-semibold text-emerald-700">
                   {bookingTotals.totalSales.toLocaleString()}
                 </p>
@@ -499,7 +579,10 @@ export default function AdminShowListingPage() {
                       );
 
                       return (
-                        <div key={`chart-day-${point.date}`} className="flex flex-col items-center gap-2">
+                        <div
+                          key={`chart-day-${point.date}`}
+                          className="flex flex-col items-center gap-2"
+                        >
                           <div className="flex h-24 items-end gap-1">
                             <div
                               className="w-2 rounded-t bg-blue-500 transition-all duration-700"
@@ -511,10 +594,13 @@ export default function AdminShowListingPage() {
                             />
                           </div>
                           <p className="text-[10px] font-medium text-slate-500">
-                            {new Date(point.date).toLocaleDateString(undefined, {
-                              month: "short",
-                              day: "numeric",
-                            })}
+                            {new Date(point.date).toLocaleDateString(
+                              undefined,
+                              {
+                                month: "short",
+                                day: "numeric",
+                              },
+                            )}
                           </p>
                         </div>
                       );
@@ -712,6 +798,55 @@ export default function AdminShowListingPage() {
       </div>
 
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold text-slate-900">Special Pricing</h2>
+          <span className="text-xs text-slate-500">
+            Total: {specialPricingEntries.length}
+          </span>
+        </div>
+
+        {specialPricingEntries.length > 0 ? (
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {specialPricingEntries.map((pricing) => (
+              <div
+                key={pricing.id}
+                className="rounded-xl border border-slate-200 bg-slate-50 p-4"
+              >
+                <div className="mb-3 flex items-start justify-between gap-2">
+                  <p className="text-sm font-semibold text-slate-900">
+                    {pricing.occasion_name || "Special rate"}
+                  </p>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[11px] font-medium capitalize ${getSpecialPricingStatusClass(
+                      pricing.status,
+                    )}`}
+                  >
+                    {pricing.status || "scheduled"}
+                  </span>
+                </div>
+
+                <div className="space-y-1.5 text-sm text-slate-700">
+                  <p>
+                    <span className="text-slate-500">Date:</span>{" "}
+                    {new Date(pricing.start_date).toLocaleDateString()} -{" "}
+                    {new Date(pricing.end_date).toLocaleDateString()}
+                  </p>
+                  <p>
+                    <span className="text-slate-500">Price:</span> EUR{" "}
+                    {pricing.price_per_night}/night
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">
+            No special pricing configured for this listing.
+          </div>
+        )}
+      </div>
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="mb-4 text-lg font-semibold text-slate-900">
           All Images
         </h2>
@@ -749,16 +884,55 @@ export default function AdminShowListingPage() {
               key={key}
               className="rounded-lg border border-slate-200 bg-slate-50 p-3"
             >
+              {(() => {
+                const includedFacilitiesItems =
+                  key === "included_facilities"
+                    ? normalizeTextArrayValue(value)
+                    : [];
+
+                return (
+                  <>
               <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                {key}
+                {formatFieldLabel(key)}
               </p>
-              {typeof value === "object" ? (
+              {key === "included_facilities" ? (
+                includedFacilitiesItems.length > 0 ? (
+                  <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
+                    {includedFacilitiesItems.map((item, index) => (
+                      <li key={`${key}-${item}-${index}`}>{item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-slate-700">-</p>
+                )
+              ) : Array.isArray(value) ? (
+                value.length > 0 ? (
+                  <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
+                    {value.map((item, index) => (
+                      <li key={`${key}-${index}`}>
+                        {typeof item === "object" && item !== null ? (
+                          <pre className="whitespace-pre-wrap break-all text-sm text-slate-700">
+                            {formatValue(item)}
+                          </pre>
+                        ) : (
+                          formatValue(item)
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-slate-700">[]</p>
+                )
+              ) : typeof value === "object" ? (
                 <pre className="whitespace-pre-wrap break-all text-sm text-slate-700">
                   {formatValue(value)}
                 </pre>
               ) : (
                 <p className="text-sm text-slate-700">{formatValue(value)}</p>
               )}
+                  </>
+                );
+              })()}
             </div>
           ))}
         </div>

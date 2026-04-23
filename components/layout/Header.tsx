@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { SearchDock } from "@/components/SearchDock";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { format } from "date-fns";
 import { createClient } from "@/utils/supabase/client";
 import type { Locale } from "@/i18n/config";
@@ -45,7 +45,7 @@ export function Header({ user: propUser, lang }: HeaderProps) {
   const pathname = usePathname();
   const dateInputRef = useRef<HTMLInputElement>(null);
   const lightpickRef = useRef<any>(null);
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   const [locale, setLocale] = useState<Locale>(lang);
   const [user, setUser] = useState<User | null>(propUser || null);
@@ -91,7 +91,16 @@ export function Header({ user: propUser, lang }: HeaderProps) {
     const getUser = async () => {
       const {
         data: { user },
+        error: getUserError,
       } = await supabase.auth.getUser();
+
+      if (getUserError) {
+        console.error("Header - Error fetching user:", getUserError);
+        setUser(null);
+        setUserProfile(null);
+        return;
+      }
+
       setUser(user);
       console.log("Header - User:", user);
 
@@ -188,7 +197,7 @@ export function Header({ user: propUser, lang }: HeaderProps) {
     });
 
     return () => subscription.unsubscribe();
-  }, [supabase.auth]);
+  }, [supabase]);
 
   const [showSearchBar, setShowSearchBar] = useState(false);
   const [showSearchDock, setShowSearchDock] = useState(false);
