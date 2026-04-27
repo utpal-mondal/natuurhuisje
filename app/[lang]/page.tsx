@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { SearchDock } from '@/components/SearchDock';
 import { ListingCard } from '@/components/ListingCard';
+import { PageLoadingSkeleton } from '@/components/common/PageLoadingSkeleton';
 import { useRef, useState, useEffect, use, useMemo } from 'react';
 import type { Locale } from '@/i18n/config';
 import { getHomepageDictionary } from '@/i18n/get-homepage-dictionary';
@@ -389,8 +390,14 @@ export default function Home({ params }: { params: Promise<{ lang: string }> }) 
     return count.toString();
   };
 
-  if (!t) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  if (!t || loading) {
+    return (
+      <PageLoadingSkeleton
+        title="Loading homepage"
+        subtitle="Fetching your nature stays"
+        cardCount={6}
+      />
+    );
   }
 
   return (

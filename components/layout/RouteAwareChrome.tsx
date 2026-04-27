@@ -21,7 +21,7 @@ export function RouteAwareChrome({ lang, children }: RouteAwareChromeProps) {
       <main className={`min-h-screen ${!isAdminRoute ? "pt-20" : ""}`}>
         {children}
       </main>
-      <Footer lang={lang} />
+      {!isAdminRoute && <Footer lang={lang} />}
     </>
   );
 }

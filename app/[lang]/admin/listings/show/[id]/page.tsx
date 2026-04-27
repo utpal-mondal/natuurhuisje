@@ -5,7 +5,30 @@ import Link from "next/link";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
-import { ArrowLeft, MapPin, BedDouble, Users, Bath } from "lucide-react";
+import {
+  ArrowLeft,
+  MapPin,
+  BedDouble,
+  Users,
+  Bath,
+  CircleCheck,
+  Wifi,
+  Car,
+  Tv,
+  UtensilsCrossed,
+  ShowerHead,
+  Refrigerator,
+  Flame,
+  TreePine,
+  Sun,
+  Dog,
+  Baby,
+  Sofa,
+  WashingMachine,
+  ShieldCheck,
+  Clock3,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 type HouseDetails = {
   id: number;
@@ -35,6 +58,25 @@ type HouseDetails = {
     occasion_name?: string | null;
     status?: string | null;
   }[];
+  house_amenities?: {
+    id: number;
+    house_id: number;
+    created_at: string | null;
+    amenity_name: string | null;
+    embedding_model: string | null;
+    amenity_embedding: string | null;
+  }[];
+  house_rules?: {
+    id: number;
+    house_id: number;
+    rule_type: string | null;
+    created_at: string | null;
+    rule_value: string | null;
+    rule_embedding: string | null;
+    embedding_model: string | null;
+  }[];
+  house_facilities?: any[];
+  included_facilities?: string[];
   [key: string]: unknown;
 };
 
@@ -209,7 +251,10 @@ export default function AdminShowListingPage() {
               price_per_night,
               occasion_name,
               status
-            )
+            ),
+            house_amenities(*),
+            house_rules(*),
+            house_facilities(*)
           `,
           )
           .eq("id", listingId)
@@ -271,6 +316,10 @@ export default function AdminShowListingPage() {
   const visibleFields = Object.entries(listing).filter(
     ([key]) =>
       key !== "house_images" &&
+      key !== "house_amenities" &&
+      key !== "house_rules" &&
+      key !== "house_facilities" &&
+      key !== "included_facilities" &&
       key !== "id" &&
       key !== "created_at" &&
       key !== "special_pricing" &&
@@ -303,39 +352,159 @@ export default function AdminShowListingPage() {
   };
 
   const formatFieldLabel = (key: string) =>
-    key
-      .replace(/_/g, " ")
-      .replace(/\b\w/g, (char) => char.toUpperCase());
+    key.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
 
-  const normalizeTextArrayValue = (value: unknown): string[] => {
-    if (Array.isArray(value)) {
-      return value
-        .map((item) => (typeof item === "string" ? item.trim() : String(item)))
-        .filter(Boolean);
-    }
-
-    if (typeof value !== "string") {
-      return [];
-    }
-
-    const raw = value.trim();
-    if (!raw) return [];
-
-    // Handles Postgres text[] format like {wifi,tv} or plain comma/newline text.
-    const cleaned = raw.startsWith("{") && raw.endsWith("}")
-      ? raw.slice(1, -1)
-      : raw;
-
-    return cleaned
-      .split(/,|\n/)
-      .map((item) => item.replace(/^"|"$/g, "").trim())
-      .filter(Boolean);
-  };
+  const summaryVisibleFields = visibleFields.filter(
+    ([, value]) =>
+      !(Array.isArray(value) || (typeof value === "string" && value.length > 90)),
+  );
 
   const specialPricingEntries = [...(listing.special_pricing || [])].sort(
     (a, b) =>
       new Date(a.start_date).getTime() - new Date(b.start_date).getTime(),
   );
+
+  const houseAmenityNames = Array.from(
+    new Set(
+      (listing.house_amenities || [])
+        .map((amenity) => amenity.amenity_name?.trim())
+        .filter((amenityName): amenityName is string => Boolean(amenityName)),
+    ),
+  );
+
+  const houseRuleItems = Array.from(
+    new Map(
+      (listing.house_rules || [])
+        .map((rule) => {
+          const rawType = rule.rule_type?.trim();
+          const rawValue = rule.rule_value?.trim();
+          if (!rawType && !rawValue) return null;
+
+          const label = formatFieldLabel(rawType || "rule");
+          const value = rawValue || "Not specified";
+
+          return {
+            key: `${rawType || "rule"}-${value}`,
+            rawType: rawType || "rule",
+            label,
+            value,
+          };
+        })
+        .filter(
+          (
+            item,
+          ): item is {
+            key: string;
+            rawType: string;
+            label: string;
+            value: string;
+          } => Boolean(item),
+        )
+        .map((item) => [item.key, item]),
+    ).values(),
+  );
+
+  const getAmenityIcon = (amenityName: string): LucideIcon => {
+    const normalized = amenityName.toLowerCase();
+
+    if (normalized.includes("wifi") || normalized.includes("internet")) return Wifi;
+    if (normalized.includes("parking") || normalized.includes("parkeer")) return Car;
+    if (normalized.includes("tv") || normalized.includes("televis")) return Tv;
+    if (
+      normalized.includes("kitchen") ||
+      normalized.includes("keuken") ||
+      normalized.includes("oven") ||
+      normalized.includes("afwas") ||
+      normalized.includes("fornuis")
+    ) {
+      return UtensilsCrossed;
+    }
+    if (normalized.includes("bath") || normalized.includes("badkamer")) return Bath;
+    if (normalized.includes("shower") || normalized.includes("douche")) return ShowerHead;
+    if (
+      normalized.includes("fridge") ||
+      normalized.includes("koel") ||
+      normalized.includes("vries")
+    ) {
+      return Refrigerator;
+    }
+    if (normalized.includes("heat") || normalized.includes("verwarming")) return Flame;
+    if (
+      normalized.includes("garden") ||
+      normalized.includes("tuin") ||
+      normalized.includes("outside") ||
+      normalized.includes("terras")
+    ) {
+      return TreePine;
+    }
+    if (normalized.includes("balcony") || normalized.includes("sun")) return Sun;
+    if (normalized.includes("dog") || normalized.includes("pet") || normalized.includes("hond")) {
+      return Dog;
+    }
+    if (normalized.includes("child") || normalized.includes("kid") || normalized.includes("kinder")) {
+      return Baby;
+    }
+    if (normalized.includes("sofa") || normalized.includes("living")) return Sofa;
+    if (normalized.includes("washer") || normalized.includes("wasmachine")) {
+      return WashingMachine;
+    }
+    if (normalized.includes("safety") || normalized.includes("veilig")) return ShieldCheck;
+
+    return CircleCheck;
+  };
+
+  const getRuleIcon = (ruleText: string): LucideIcon => {
+    const normalized = ruleText.toLowerCase();
+
+    if (
+      normalized.includes("check in") ||
+      normalized.includes("check-in") ||
+      normalized.includes("check out") ||
+      normalized.includes("check-out") ||
+      normalized.includes("uitcheck") ||
+      normalized.includes("incheck") ||
+      normalized.includes("arrival") ||
+      normalized.includes("time")
+    ) {
+      return Clock3;
+    }
+    if (
+      normalized.includes("pet") ||
+      normalized.includes("dog") ||
+      normalized.includes("hond") ||
+      normalized.includes("cat")
+    ) {
+      return Dog;
+    }
+    if (
+      normalized.includes("kind") ||
+      normalized.includes("child") ||
+      normalized.includes("kids") ||
+      normalized.includes("babies") ||
+      normalized.includes("baby")
+    ) {
+      return Baby;
+    }
+    if (
+      normalized.includes("smok") ||
+      normalized.includes("roken") ||
+      normalized.includes("fire") ||
+      normalized.includes("vuur")
+    ) {
+      return Flame;
+    }
+    if (
+      normalized.includes("party") ||
+      normalized.includes("feest") ||
+      normalized.includes("event") ||
+      normalized.includes("noise") ||
+      normalized.includes("loud")
+    ) {
+      return ShieldCheck;
+    }
+
+    return CircleCheck;
+  };
 
   const getSpecialPricingStatusClass = (status?: string | null) => {
     if (status === "active") {
@@ -461,6 +630,8 @@ export default function AdminShowListingPage() {
     await fetchCategoryData(listing.id);
     setIsAssigningCategory(false);
   };
+
+  console.log(listing)
 
   return (
     <div className="space-y-6">
@@ -799,7 +970,9 @@ export default function AdminShowListingPage() {
 
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold text-slate-900">Special Pricing</h2>
+          <h2 className="text-lg font-semibold text-slate-900">
+            Special Pricing
+          </h2>
           <span className="text-xs text-slate-500">
             Total: {specialPricingEntries.length}
           </span>
@@ -874,68 +1047,97 @@ export default function AdminShowListingPage() {
         )}
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold text-slate-900">
-          All Listing Fields
-        </h2>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {visibleFields.map(([key, value]) => (
-            <div
-              key={key}
-              className="rounded-lg border border-slate-200 bg-slate-50 p-3"
-            >
-              {(() => {
-                const includedFacilitiesItems =
-                  key === "included_facilities"
-                    ? normalizeTextArrayValue(value)
-                    : [];
+      <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-purple-50/40 p-6 shadow-sm">
+        <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+          <h2 className="text-xl font-bold text-slate-900">House Amenities</h2>
+          <span className="rounded-full bg-[#f3e8ff] px-3 py-1 text-xs font-semibold text-[#6b21a8]">
+            {houseAmenityNames.length} Amenities
+          </span>
+        </div>
 
-                return (
-                  <>
-              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+        {houseAmenityNames.length > 0 ? (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {houseAmenityNames.map((amenityName, index) => {
+              const AmenityIcon = getAmenityIcon(amenityName);
+
+              return (
+                <div
+                  key={`amenity-${amenityName}-${index}`}
+                  className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white/90 p-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#8c4aa0]/30 hover:shadow-md"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#f3e8ff] text-[#6b21a8]">
+                    <AmenityIcon className="h-5 w-5" />
+                  </div>
+                  <p className="text-sm font-medium text-slate-800">{amenityName}</p>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-dashed border-slate-300 bg-white/70 p-6 text-center text-sm text-slate-500">
+            No amenities available for this listing.
+          </div>
+        )}
+      </div>
+
+      <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-indigo-50/35 p-6 shadow-sm">
+        <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+          <h2 className="text-xl font-bold text-slate-900">House Rules</h2>
+          <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700">
+            {houseRuleItems.length} Rules
+          </span>
+        </div>
+
+        {houseRuleItems.length > 0 ? (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {houseRuleItems.map((ruleItem, index) => {
+              const RuleIcon = getRuleIcon(`${ruleItem.rawType} ${ruleItem.value}`);
+
+              return (
+                <div
+                  key={`house-rule-${ruleItem.key}-${index}`}
+                  className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white/90 p-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 text-indigo-700">
+                    <RuleIcon className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-slate-800">{ruleItem.label}</p>
+                    <p className="text-xs text-slate-500 wrap-break-word">{ruleItem.value}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-dashed border-slate-300 bg-white/70 p-6 text-center text-sm text-slate-500">
+            No rules available for this listing.
+          </div>
+        )}
+      </div>
+
+      <div className="p-6">
+        <h2 className="mb-6 text-4xl font-bold text-[#52215f]">
+          Others
+        </h2>
+
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {summaryVisibleFields.map(([key, value]) => (
+            <article
+              key={key}
+              className="group rounded-2xl border border-slate-200/80 bg-white/80 p-4 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[#8c4aa0]/35 hover:shadow-md"
+            >
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
                 {formatFieldLabel(key)}
               </p>
-              {key === "included_facilities" ? (
-                includedFacilitiesItems.length > 0 ? (
-                  <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
-                    {includedFacilitiesItems.map((item, index) => (
-                      <li key={`${key}-${item}-${index}`}>{item}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-sm text-slate-700">-</p>
-                )
-              ) : Array.isArray(value) ? (
-                value.length > 0 ? (
-                  <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
-                    {value.map((item, index) => (
-                      <li key={`${key}-${index}`}>
-                        {typeof item === "object" && item !== null ? (
-                          <pre className="whitespace-pre-wrap break-all text-sm text-slate-700">
-                            {formatValue(item)}
-                          </pre>
-                        ) : (
-                          formatValue(item)
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-sm text-slate-700">[]</p>
-                )
-              ) : typeof value === "object" ? (
-                <pre className="whitespace-pre-wrap break-all text-sm text-slate-700">
-                  {formatValue(value)}
-                </pre>
-              ) : (
-                <p className="text-sm text-slate-700">{formatValue(value)}</p>
-              )}
-                  </>
-                );
-              })()}
-            </div>
+              <p className="mt-2 text-base font-semibold leading-snug text-slate-800 wrap-break-word">
+                {formatValue(value)}
+              </p>
+            </article>
           ))}
         </div>
+
+        
       </div>
     </div>
   );
