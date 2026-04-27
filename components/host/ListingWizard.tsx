@@ -80,6 +80,7 @@ export function ListingWizard({ mode = 'create', existingListing = null }: { mod
   const [currentStep, setCurrentStep] = useState('general');
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const [formData, setFormData] = useState(() => {
     if (mode === 'edit' && existingListing) {
@@ -282,29 +283,29 @@ export function ListingWizard({ mode = 'create', existingListing = null }: { mod
   const renderStepContent = () => {
     switch (currentStep) {
       case 'general':
-        return <GeneralStep data={formData} updateData={setFormData} onNext={() => handleNext('general')} onPrevious={() => handlePrevious('general')} />;
+        return <GeneralStep data={formData} updateData={setFormData} onNext={() => handleNext('general')} onPrevious={() => handlePrevious('general')} mode={mode} onSave={handleSave} isSubmitting={isSubmitting} />;
       case 'location':
-        return <LocationStep data={formData} updateData={setFormData} onNext={() => handleNext('location')} onPrevious={() => handlePrevious('location')} />;
+        return <LocationStep data={formData} updateData={setFormData} onNext={() => handleNext('location')} onPrevious={() => handlePrevious('location')} mode={mode} onSave={handleSave} isSubmitting={isSubmitting} />;
       case 'photos':
-        return <PhotosStep data={formData} updateData={setFormData} onNext={() => handleNext('photos')} onPrevious={() => handlePrevious('photos')} />;
+        return <PhotosStep data={formData} updateData={setFormData} onNext={() => handleNext('photos')} onPrevious={() => handlePrevious('photos')} mode={mode} onSave={handleSave} isSubmitting={isSubmitting} />;
       case 'pricing':
-        return <PricingStep data={formData} updateData={setFormData} onNext={() => handleNext('pricing')} onPrevious={() => handlePrevious('pricing')} />;
+        return <PricingStep data={formData} updateData={setFormData} onNext={() => handleNext('pricing')} onPrevious={() => handlePrevious('pricing')} mode={mode} onSave={handleSave} isSubmitting={isSubmitting} />;
       case 'availability':
-        return <AvailabilityStep data={formData} updateData={setFormData} onNext={() => handleNext('availability')} onPrevious={() => handlePrevious('availability')} />;
+        return <AvailabilityStep data={formData} updateData={setFormData} onNext={() => handleNext('availability')} onPrevious={() => handlePrevious('availability')} mode={mode} onSave={handleSave} isSubmitting={isSubmitting} />;
       // case 'calendar':
       //   return <CalendarStep data={formData} updateData={setFormData} onNext={() => handleNext('calendar')} onPrevious={() => handlePrevious('calendar')} />;
       // case 'bedrooms':
       //   return <BedroomsStep data={formData} updateData={setFormData} onNext={() => handleNext('bedrooms')} onPrevious={() => handlePrevious('bedrooms')} />;
       case 'description':
-        return <DescriptionStep data={formData} updateData={setFormData} onNext={() => handleNext('description')} onPrevious={() => handlePrevious('description')} />;
+        return <DescriptionStep data={formData} updateData={setFormData} onNext={() => handleNext('description')} onPrevious={() => handlePrevious('description')} mode={mode} onSave={handleSave} isSubmitting={isSubmitting} />;
       case 'stay_details':
-        return <StayDetailsStep data={formData} updateData={setFormData} onNext={() => handleNext('stay_details')} onPrevious={() => handlePrevious('stay_details')} />;
+        return <StayDetailsStep data={formData} updateData={setFormData} onNext={() => handleNext('stay_details')} onPrevious={() => handlePrevious('stay_details')} mode={mode} onSave={handleSave} isSubmitting={isSubmitting} />;
       case 'sustainability':
-        return <SustainabilityStep data={formData} updateData={setFormData} onNext={() => handleNext('sustainability')} onPrevious={() => handlePrevious('sustainability')} />;
+        return <SustainabilityStep data={formData} updateData={setFormData} onNext={() => handleNext('sustainability')} onPrevious={() => handlePrevious('sustainability')} mode={mode} onSave={handleSave} isSubmitting={isSubmitting} />;
       case 'house_rules':
         return <HouseRulesStep data={formData} updateData={setFormData} onNext={() => handleNext('house_rules')} onPrevious={() => handlePrevious('house_rules')} mode={mode} existingListing={existingListing} onSave={handleSave} isSubmitting={isSubmitting} />;
       default:
-        return <GeneralStep data={formData} updateData={setFormData} onNext={() => handleNext('general')} onPrevious={() => handlePrevious('general')} />;
+        return <GeneralStep data={formData} updateData={setFormData} onNext={() => handleNext('general')} onPrevious={() => handlePrevious('general')} mode={mode} onSave={handleSave} isSubmitting={isSubmitting} />;
     }
   };
 
@@ -323,6 +324,16 @@ export function ListingWizard({ mode = 'create', existingListing = null }: { mod
     }
   };
 
+  const showToast = (type: 'success' | 'error', message: string) => {
+    setToast({ type, message });
+  };
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = window.setTimeout(() => setToast(null), 3000);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+
   const handleSave = async () => {
     if (isSubmitting) return;
 
@@ -333,7 +344,7 @@ export function ListingWizard({ mode = 'create', existingListing = null }: { mod
       const { data: { user }, error: userError } = await supabase.auth.getUser();
 
       if (userError || !user) {
-        alert('You must be logged in to save the listing');
+        showToast('error', 'You must be logged in to save the listing');
         return;
       }
 
@@ -357,19 +368,19 @@ export function ListingWizard({ mode = 'create', existingListing = null }: { mod
           const result = await response.json();
 
           if (response.ok && result.success) {
-            alert('Listing updated successfully!');
-            router.push(redirectPath);
+            showToast('success', 'Listing updated successfully!');
+            window.setTimeout(() => router.push(redirectPath), 900);
           } else {
-            alert(`Error updating listing: ${result.error || 'Failed to update listing'}`);
+            showToast('error', `Error updating listing: ${result.error || 'Failed to update listing'}`);
           }
         }
         else {
           const result = await updateListingToDatabase(existingListing.id, formData, userId);
           if (result.success) {
-            alert('Listing updated successfully!');
-            router.push(redirectPath);
+            showToast('success', 'Listing updated successfully!');
+            window.setTimeout(() => router.push(redirectPath), 900);
           } else {
-            alert(`Error updating listing: ${result.error}`);
+            showToast('error', `Error updating listing: ${result.error}`);
           }
         }
       } else {
@@ -377,15 +388,15 @@ export function ListingWizard({ mode = 'create', existingListing = null }: { mod
         console.log('Creating new listing:', formData);
         const result = await saveListingToDatabase(formData, userId);
         if (result.success) {
-          alert('Listing created successfully!');
-          router.push(redirectPath);
+          showToast('success', 'Listing created successfully!');
+          window.setTimeout(() => router.push(redirectPath), 900);
         } else {
-          alert(`Error creating listing: ${result.error}`);
+          showToast('error', `Error creating listing: ${result.error}`);
         }
       }
     } catch (error) {
       console.error('Error saving listing:', error);
-      alert('Failed to save listing. Please try again.');
+      showToast('error', 'Failed to save listing. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -393,6 +404,20 @@ export function ListingWizard({ mode = 'create', existingListing = null }: { mod
 
   return (
     <div className="flex min-h-screen bg-[#F8F4E3]">
+      {toast && (
+        <div className="fixed right-4 top-4 z-[100] max-w-sm">
+          <div
+            className={`rounded-lg border px-4 py-3 text-sm shadow-lg ${
+              toast.type === 'success'
+                ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                : 'border-rose-200 bg-rose-50 text-rose-700'
+            }`}
+          >
+            {toast.message}
+          </div>
+        </div>
+      )}
+
       {/* Sidebar */}
       <aside className="w-64 bg-[#F8F4E3] border-r border-[#E5E5E5] sticky h-full overflow-y-auto hidden md:block">
         <div className="p-6">
@@ -473,7 +498,7 @@ export function ListingWizard({ mode = 'create', existingListing = null }: { mod
 }
 
 // Temporary placeholder components for steps
-function GeneralStep({ data, updateData, onNext, onPrevious }: any) {
+function GeneralStep({ data, updateData, onNext, onPrevious, mode = 'create', onSave, isSubmitting = false }: any) {
   return (
     <div className="space-y-8 animate-fade-in">
       <h2 className="text-3xl font-serif text-[#1D331D]">General</h2>
@@ -744,19 +769,30 @@ function GeneralStep({ data, updateData, onNext, onPrevious }: any) {
         >
           Previous
         </button>
-        <button 
-          onClick={onNext}
-          suppressHydrationWarning
-          className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors flex items-center gap-2"
-        >
-          Next
-        </button>
+        {mode === 'edit' ? (
+          <button 
+            onClick={onSave}
+            disabled={isSubmitting}
+            suppressHydrationWarning
+            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? 'Saving...' : 'Save Changes'}
+          </button>
+        ) : (
+          <button 
+            onClick={onNext}
+            suppressHydrationWarning
+            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors flex items-center gap-2"
+          >
+            Next
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
-function LocationStep({ data, updateData, onNext, onPrevious }: any) {
+function LocationStep({ data, updateData, onNext, onPrevious, mode = 'create', onSave, isSubmitting = false }: any) {
   return (
     <div className="space-y-8 animate-fade-in">
       <h2 className="text-3xl font-serif text-[#1D331D]">Location</h2>
@@ -1013,12 +1049,22 @@ function LocationStep({ data, updateData, onNext, onPrevious }: any) {
         >
           Previous
         </button>
-        <button 
-          onClick={onNext}
-          className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors flex items-center gap-2"
-        >
-          Next
-        </button>
+        {mode === 'edit' ? (
+          <button 
+            onClick={onSave}
+            disabled={isSubmitting}
+            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? 'Saving...' : 'Save Changes'}
+          </button>
+        ) : (
+          <button 
+            onClick={onNext}
+            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors flex items-center gap-2"
+          >
+            Next
+          </button>
+        )}
       </div>
     </div>
   );
@@ -1182,7 +1228,7 @@ function ExtraCostsModal({ isOpen, onClose, selected, onUpdate }: any) {
   );
 }
 
-function PhotosStep({ data, updateData, onNext, onPrevious }: any) {
+function PhotosStep({ data, updateData, onNext, onPrevious, mode = 'create', onSave, isSubmitting = false }: any) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -1289,7 +1335,10 @@ function PhotosStep({ data, updateData, onNext, onPrevious }: any) {
       if (successfulUploads.length > 0) {
         // Update form data with uploaded image URLs
         const imageUrls = successfulUploads.map(result => result.url);
-        updateData({ ...data, images: [...data.images, ...imageUrls] });
+        updateData((prevData: any) => ({
+          ...prevData,
+          images: [...(prevData?.images || []), ...imageUrls],
+        }));
         
         // Clear selected files after successful upload
         setSelectedFiles([]);
@@ -1399,7 +1448,7 @@ function PhotosStep({ data, updateData, onNext, onPrevious }: any) {
         )}
 
         {/* Uploaded Images */}
-        {data.images.length > 0 && imagePreviews.length === 0 && (
+        {data.images.length > 0 && (
           <div className="mt-6">
             <h3 className="text-sm font-medium text-gray-700 mb-4">Uploaded Photos ({data.images.length})</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -1414,8 +1463,10 @@ function PhotosStep({ data, updateData, onNext, onPrevious }: any) {
                   </div>
                   <button
                     onClick={() => {
-                      const newImages = data.images.filter((_: any, i: number) => i !== index);
-                      updateData({ ...data, images: newImages });
+                      updateData((prevData: any) => ({
+                        ...prevData,
+                        images: (prevData?.images || []).filter((_: any, i: number) => i !== index),
+                      }));
                     }}
                     className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                   >
@@ -1481,19 +1532,29 @@ function PhotosStep({ data, updateData, onNext, onPrevious }: any) {
               )}
             </button>
           )}
-          <button 
-            onClick={onNext}
-            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors flex items-center gap-2"
-          >
-            Next
-          </button>
+          {mode === 'edit' ? (
+            <button 
+              onClick={onSave}
+              disabled={isSubmitting}
+              className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? 'Saving...' : 'Save Changes'}
+            </button>
+          ) : (
+            <button 
+              onClick={onNext}
+              className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors flex items-center gap-2"
+            >
+              Next
+            </button>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-function PricingStep({ data, updateData, onNext, onPrevious }: any) {
+function PricingStep({ data, updateData, onNext, onPrevious, mode = 'create', onSave, isSubmitting = false }: any) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [isExtraCostsModalOpen, setIsExtraCostsModalOpen] = useState(false);
@@ -2129,18 +2190,28 @@ function PricingStep({ data, updateData, onNext, onPrevious }: any) {
         >
           Previous
         </button>
-        <button 
-          onClick={onNext}
-          className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors"
-        >
-          Next
-        </button>
+        {mode === 'edit' ? (
+          <button 
+            onClick={onSave}
+            disabled={isSubmitting}
+            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? 'Saving...' : 'Save Changes'}
+          </button>
+        ) : (
+          <button 
+            onClick={onNext}
+            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors"
+          >
+            Next
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
-function AvailabilityStep({ data, updateData, onNext, onPrevious }: any) {
+function AvailabilityStep({ data, updateData, onNext, onPrevious, mode = 'create', onSave, isSubmitting = false }: any) {
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const [showTimePicker, setShowTimePicker] = useState<string | null>(null);
 
@@ -2447,12 +2518,22 @@ function AvailabilityStep({ data, updateData, onNext, onPrevious }: any) {
         >
           Previous
         </button>
-        <button 
-          onClick={onNext}
-          className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors"
-        >
-          Next
-        </button>
+        {mode === 'edit' ? (
+          <button 
+            onClick={onSave}
+            disabled={isSubmitting}
+            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? 'Saving...' : 'Save Changes'}
+          </button>
+        ) : (
+          <button 
+            onClick={onNext}
+            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors"
+          >
+            Next
+          </button>
+        )}
       </div>
     </div>
   );
@@ -3348,7 +3429,7 @@ function CalendarStep({ data, updateData, onNext, onPrevious }: any) {
   );
 }
 
-function BedroomsStep({ data, updateData, onNext, onPrevious }: any) {
+function BedroomsStep({ data, updateData, onNext, onPrevious, mode = 'create', onSave, isSubmitting = false }: any) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   const rooms = data.rooms || [];
@@ -3536,18 +3617,28 @@ function BedroomsStep({ data, updateData, onNext, onPrevious }: any) {
         >
           Previous
         </button>
-        <button 
-          onClick={onNext}
-          className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors"
-        >
-          Next
-        </button>
+        {mode === 'edit' ? (
+          <button 
+            onClick={onSave}
+            disabled={isSubmitting}
+            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? 'Saving...' : 'Save Changes'}
+          </button>
+        ) : (
+          <button 
+            onClick={onNext}
+            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors"
+          >
+            Next
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
-function DescriptionStep({ data, updateData, onNext, onPrevious }: any) {
+function DescriptionStep({ data, updateData, onNext, onPrevious, mode = 'create', onSave, isSubmitting = false }: any) {
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="space-y-2">
@@ -3600,18 +3691,28 @@ function DescriptionStep({ data, updateData, onNext, onPrevious }: any) {
         >
           Previous
         </button>
-        <button 
-          onClick={onNext}
-          className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors"
-        >
-          Next
-        </button>
+        {mode === 'edit' ? (
+          <button 
+            onClick={onSave}
+            disabled={isSubmitting}
+            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? 'Saving...' : 'Save Changes'}
+          </button>
+        ) : (
+          <button 
+            onClick={onNext}
+            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors"
+          >
+            Next
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
-function StayDetailsStep({ data, updateData, onNext, onPrevious }: any) {
+function StayDetailsStep({ data, updateData, onNext, onPrevious, mode = 'create', onSave, isSubmitting = false }: any) {
   const categories = [
     {
       title: "Peace and Quiet",
@@ -3780,18 +3881,28 @@ function StayDetailsStep({ data, updateData, onNext, onPrevious }: any) {
         >
           Previous
         </button>
-        <button 
-          onClick={onNext}
-          className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors"
-        >
-          Next
-        </button>
+        {mode === 'edit' ? (
+          <button 
+            onClick={onSave}
+            disabled={isSubmitting}
+            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? 'Saving...' : 'Save Changes'}
+          </button>
+        ) : (
+          <button 
+            onClick={onNext}
+            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors"
+          >
+            Next
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
-function SustainabilityStep({ data, updateData, onNext, onPrevious }: any) {
+function SustainabilityStep({ data, updateData, onNext, onPrevious, mode = 'create', onSave, isSubmitting = false }: any) {
   const sections = [
     {
       title: "Energy",
@@ -4161,12 +4272,22 @@ function SustainabilityStep({ data, updateData, onNext, onPrevious }: any) {
         >
           Previous
         </button>
-        <button 
-          onClick={onNext}
-          className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors"
-        >
-          Next
-        </button>
+        {mode === 'edit' ? (
+          <button 
+            onClick={onSave}
+            disabled={isSubmitting}
+            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? 'Saving...' : 'Save Changes'}
+          </button>
+        ) : (
+          <button 
+            onClick={onNext}
+            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors"
+          >
+            Next
+          </button>
+        )}
       </div>
     </div>
   );
