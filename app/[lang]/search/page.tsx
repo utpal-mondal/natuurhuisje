@@ -78,7 +78,7 @@ function SearchContent() {
     <div className="min-h-screen bg-gray-50">
       {/* Search Bar */}
       <div className="bg-white border-b border-gray-200 py-4 sticky top-20 z-30">
-        <div className="container-custom">
+        <div className="container-custom mt-8">
           <SearchDock variant="compact" lang={lang} />
         </div>
       </div>
