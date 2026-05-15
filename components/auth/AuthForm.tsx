@@ -41,19 +41,21 @@ export function AuthForm({ type }: AuthFormProps) {
         router.refresh();
         router.push('/');
       } else {
-        const { error } = await supabase.auth.signUp({ 
-          email, 
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
-          },
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email,
+            password,
+          }),
         });
-        
-        if (error) {
-          throw new Error(error.message);
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || 'Registration failed');
         }
-        
-        // Show success message or redirect
+
         router.push('/register/success');
       }
     } catch (error) {

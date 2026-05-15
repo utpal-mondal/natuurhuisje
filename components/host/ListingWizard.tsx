@@ -424,7 +424,7 @@ export function ListingWizard({ mode = 'create', existingListing = null }: { mod
           {/* Back Button */}
           <button
             onClick={() => window.history.back()}
-            className="w-full flex items-center gap-3 px-3 py-3 text-sm font-medium rounded-lg transition-colors text-gray-600 hover:text-[#244224] hover:bg-white/50 mb-6"
+            className="w-full flex items-center gap-3 px-3 py-3 text-sm font-medium rounded-lg transition-colors text-gray-600 hover:text-[#244224] hover:bg-white/50 mb-6 cursor-pointer"
           >
             <ChevronLeft size={18} className="text-gray-400" />
             <span>{mode === 'edit' ? 'Back to Listing' : 'Back to Account'}</span>
@@ -469,7 +469,7 @@ export function ListingWizard({ mode = 'create', existingListing = null }: { mod
         <div className="md:hidden mb-6">
           <button
             onClick={() => router.push(mode === 'edit' ? `/host/edit/${existingListing?.id}` : '/en/account/landlord')}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors text-gray-600 hover:text-[#244224] hover:bg-white/50"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors text-gray-600 hover:text-[#244224] hover:bg-white/50 cursor-pointer"
           >
             <ChevronLeft size={16} className="text-gray-400" />
             <span>{mode === 'edit' ? 'Back to Listing' : 'Back to Account'}</span>
@@ -765,7 +765,7 @@ function GeneralStep({ data, updateData, onNext, onPrevious, mode = 'create', on
           onClick={onPrevious}
           disabled
           suppressHydrationWarning
-          className="bg-gray-100 text-gray-400 px-8 py-3 rounded-lg font-medium cursor-not-allowed flex items-center gap-2"
+          className="bg-gray-100 text-gray-400 px-8 py-3 rounded-lg font-medium cursor-not-allowed flex items-center gap-2 "
         >
           Previous
         </button>
@@ -782,7 +782,7 @@ function GeneralStep({ data, updateData, onNext, onPrevious, mode = 'create', on
           <button 
             onClick={onNext}
             suppressHydrationWarning
-            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors flex items-center gap-2"
+            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors flex items-center gap-2 cursor-pointer"
           >
             Next
           </button>
@@ -1045,7 +1045,7 @@ function LocationStep({ data, updateData, onNext, onPrevious, mode = 'create', o
       <div className="pt-8 flex justify-between border-t border-gray-100">
         <button 
           onClick={onPrevious}
-          className="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors flex items-center gap-2"
+          className="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors flex items-center gap-2 cursor-pointer"
         >
           Previous
         </button>
@@ -1060,7 +1060,7 @@ function LocationStep({ data, updateData, onNext, onPrevious, mode = 'create', o
         ) : (
           <button 
             onClick={onNext}
-            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors flex items-center gap-2"
+            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors flex items-center gap-2 cursor-pointer"
           >
             Next
           </button>
@@ -1508,7 +1508,7 @@ function PhotosStep({ data, updateData, onNext, onPrevious, mode = 'create', onS
       <div className="pt-8 flex justify-between border-t border-gray-100">
         <button 
           onClick={onPrevious}
-          className="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors flex items-center gap-2"
+          className="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors flex items-center gap-2 cursor-pointer"
         >
           Previous
         </button>
@@ -1543,7 +1543,7 @@ function PhotosStep({ data, updateData, onNext, onPrevious, mode = 'create', onS
           ) : (
             <button 
               onClick={onNext}
-              className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors flex items-center gap-2"
+              className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors flex items-center gap-2 cursor-pointer"
             >
               Next
             </button>
@@ -2186,7 +2186,7 @@ function PricingStep({ data, updateData, onNext, onPrevious, mode = 'create', on
       <div className="pt-8 flex justify-between border-t border-gray-100">
         <button 
           onClick={onPrevious}
-          className="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+          className="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors cursor-pointer"
         >
           Previous
         </button>
@@ -2201,7 +2201,7 @@ function PricingStep({ data, updateData, onNext, onPrevious, mode = 'create', on
         ) : (
           <button 
             onClick={onNext}
-            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors"
+            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors cursor-pointer"
           >
             Next
           </button>
@@ -2514,7 +2514,7 @@ function AvailabilityStep({ data, updateData, onNext, onPrevious, mode = 'create
       <div className="pt-8 flex justify-between border-t border-gray-100">
         <button 
           onClick={onPrevious}
-          className="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+          className="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors cursor-pointer"
         >
           Previous
         </button>
@@ -2529,7 +2529,7 @@ function AvailabilityStep({ data, updateData, onNext, onPrevious, mode = 'create
         ) : (
           <button 
             onClick={onNext}
-            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors"
+            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors cursor-pointer"
           >
             Next
           </button>
@@ -2911,13 +2911,13 @@ function CalendarStep({ data, updateData, onNext, onPrevious }: any) {
       <div className="pt-8 flex justify-between border-t border-gray-100">
         <button 
           onClick={onPrevious}
-          className="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+          className="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors cursor-pointer"
         >
           Previous
         </button>
         <button 
           onClick={onNext}
-          className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors"
+          className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors cursor-pointer"
         >
           Next
         </button>
@@ -3613,7 +3613,7 @@ function BedroomsStep({ data, updateData, onNext, onPrevious, mode = 'create', o
       <div className="pt-8 flex justify-between border-t border-gray-100">
         <button 
           onClick={onPrevious}
-          className="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+          className="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors cursor-pointer"
         >
           Previous
         </button>
@@ -3628,7 +3628,7 @@ function BedroomsStep({ data, updateData, onNext, onPrevious, mode = 'create', o
         ) : (
           <button 
             onClick={onNext}
-            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors"
+            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors cursor-pointer"
           >
             Next
           </button>
@@ -3687,7 +3687,7 @@ function DescriptionStep({ data, updateData, onNext, onPrevious, mode = 'create'
       <div className="pt-8 flex justify-between border-t border-gray-100">
         <button 
           onClick={onPrevious}
-          className="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+          className="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors cursor-pointer"
         >
           Previous
         </button>
@@ -3702,7 +3702,7 @@ function DescriptionStep({ data, updateData, onNext, onPrevious, mode = 'create'
         ) : (
           <button 
             onClick={onNext}
-            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors"
+            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors cursor-pointer"
           >
             Next
           </button>
@@ -3877,7 +3877,7 @@ function StayDetailsStep({ data, updateData, onNext, onPrevious, mode = 'create'
       <div className="pt-8 flex justify-between border-t border-gray-100">
         <button 
           onClick={onPrevious}
-          className="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+          className="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors cursor-pointer"
         >
           Previous
         </button>
@@ -3892,7 +3892,7 @@ function StayDetailsStep({ data, updateData, onNext, onPrevious, mode = 'create'
         ) : (
           <button 
             onClick={onNext}
-            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors"
+            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors cursor-pointer"
           >
             Next
           </button>
@@ -4268,7 +4268,7 @@ function SustainabilityStep({ data, updateData, onNext, onPrevious, mode = 'crea
       <div className="pt-8 flex justify-between border-t border-gray-100">
         <button 
           onClick={onPrevious}
-          className="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+          className="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors cursor-pointer"
         >
           Previous
         </button>
@@ -4283,7 +4283,7 @@ function SustainabilityStep({ data, updateData, onNext, onPrevious, mode = 'crea
         ) : (
           <button 
             onClick={onNext}
-            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors"
+            className="bg-[#5b2d8e] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#4a2475] transition-colors cursor-pointer"
           >
             Next
           </button>
@@ -4479,7 +4479,7 @@ function HouseRulesStep({ data, updateData, onNext, onPrevious, mode = 'create',
       <div className="pt-8 flex justify-between border-t border-gray-100">
         <button 
           onClick={onPrevious}
-          className="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+          className="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors cursor-pointer"
         >
           Previous
         </button>

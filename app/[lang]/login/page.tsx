@@ -125,7 +125,7 @@ export default function LoginPage() {
                 </label>
               </div>
 
-              <Link href={`/${lang}/forgot-password`} className="text-sm text-purple-600 hover:text-purple-700">
+              <Link href={``} className="text-sm text-purple-600 hover:text-purple-700 cursor-default">
                 {t.login.forgotPassword}
               </Link>
             </div>
@@ -133,7 +133,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 px-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {loading ? '...' : t.login.loginButton}
             </button>

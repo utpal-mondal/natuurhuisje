@@ -61,21 +61,23 @@ export default function RegisterPage() {
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-          },
-        },
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          password,
+          firstName,
+          surname: lastName
+        }),
       });
 
-      if (error) {
-        setError(error.message);
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || 'Registration failed');
       } else {
-        router.push(`/${lang}/login?registered=true`);
+        router.push(`/${lang}/account`);
       }
     } catch (err) {
       setError('An unexpected error occurred');

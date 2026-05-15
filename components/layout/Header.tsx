@@ -89,20 +89,19 @@ export function Header({ user: propUser, lang }: HeaderProps) {
   // Fetch user session on mount and when it changes
   useEffect(() => {
     const getUser = async () => {
-      const {
-        data: { user },
-        error: getUserError,
-      } = await supabase.auth.getUser();
+      try {
+        const {
+          data: { user },
+          error: getUserError,
+        } = await supabase.auth.getUser();
 
-      if (getUserError) {
-        console.error("Header - Error fetching user:", getUserError);
-        setUser(null);
-        setUserProfile(null);
-        return;
-      }
+        if (getUserError) {
+          setUser(null);
+          setUserProfile(null);
+          return;
+        }
 
-      setUser(user);
-      console.log("Header - User:", user);
+        setUser(user);
 
       // Fetch user profile when user is available
       if (user) {
@@ -154,6 +153,10 @@ export function Header({ user: propUser, lang }: HeaderProps) {
       } else {
         setUserProfile(null);
       }
+    } catch {
+      setUser(null);
+      setUserProfile(null);
+    }
     };
 
     getUser();
@@ -1033,9 +1036,9 @@ export function Header({ user: propUser, lang }: HeaderProps) {
 
             <div className="flex items-center gap-4">
               {/* Heart Icon */}
-              <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              {/* <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <Heart className="h-5 w-5 text-gray-700" />
-              </button>
+              </button> */}
 
               {/* Language Selector */}
               {/* <div className="relative" ref={languageDropdownRef}> */}

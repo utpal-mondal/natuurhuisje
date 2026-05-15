@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    const { email, password, firstName, surname, phoneNumber, countryCode, role } = await request.json();
+    const { email, password, firstName, surname } = await request.json();
 
     const supabase = await createClient();
 
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
         data: {
           first_name: firstName,
           last_name: surname,
-          role: role
+          role: 'landlord'
         }
       }
     });
@@ -35,24 +35,24 @@ export async function POST(request: Request) {
       const userData = {
         auth_user_id: authData.user.id,
         email,
-        first_name: firstName,
-        last_name: surname,
-        phone_country_code: countryCode,
-        phone_number: phoneNumber,
-        role: role, // This should be 'landlord'
+        first_name: firstName || '',
+        last_name: surname || '',
+        display_name: `${firstName || ''} ${surname || ''}`.trim(),
+        role: 'landlord',
+        role_id: 2,
         status: 'pending_verification',
-        is_verified: false,
-        display_name: `${firstName} ${surname}`
+        is_verified: false
       };
 
       const { error: profileError } = await supabase
         .from('users')
-        .insert(userData as any);
+        .upsert(userData as any, { onConflict: 'auth_user_id' });
 
       if (profileError) {
-        console.error('Profile creation error:', profileError);
-        // Don't fail the registration, just log the error
-        // The auth user was created successfully
+        console.error('Profile upsert error:', profileError);
+        return NextResponse.json({
+          error: `Account created but profile failed: ${profileError.message}`
+        }, { status: 500 });
       }
 
       return NextResponse.json({ 

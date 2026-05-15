@@ -1,7 +1,7 @@
 {
   "login": {
     "title": "Welcome back",
-    "subtitle": "Sign in to your account",
+    "subtitle": "Sign in as landloard",
     "email": "Email address",
     "emailPlaceholder": "Enter your email",
     "password": "Password",
@@ -19,7 +19,7 @@
     }
   },
   "register": {
-    "title": "Create your account",
+    "title": "Register as landloard",
     "subtitle": "Join natuurhuisje today",
     "firstName": "First name",
     "firstNamePlaceholder": "Enter your first name",
