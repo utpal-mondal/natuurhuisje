@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import type { Locale } from '@/i18n/config';
 import { getDictionary } from '@/i18n/get-client-dictionary';
 import { fallbackTranslations } from '@/i18n/fallback-translations';
-import AccountLayout from '@/components/AccountLayout';
 import { getHostBookings, updateBookingStatus } from '@/lib/supabase-bookings';
 import { createClient } from '@/utils/supabase/client';
 import { Calendar, MapPin, Users, Euro, Clock, CheckCircle, XCircle, AlertCircle, Eye, Mail, Phone } from 'lucide-react';
@@ -164,23 +163,42 @@ function HostBookingsContent({ lang }: { lang: Locale }) {
 
   if (loading) {
     return (
-      <AccountLayout lang={lang}>
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading bookings...</p>
-          </div>
+      <div className="space-y-6 animate-pulse">
+        <div>
+          <div className="h-9 w-56 bg-gray-200 rounded" />
+          <div className="mt-2 h-5 w-96 bg-gray-200 rounded" />
         </div>
-      </AccountLayout>
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="space-y-2">
+                  <div className="h-5 w-48 bg-gray-200 rounded" />
+                  <div className="h-4 w-64 bg-gray-200 rounded" />
+                </div>
+                <div className="h-6 w-20 bg-gray-200 rounded" />
+              </div>
+              <div className="flex gap-6">
+                <div className="h-24 w-24 bg-gray-200 rounded-lg" />
+                <div className="flex-1 space-y-3">
+                  <div className="h-4 w-full bg-gray-200 rounded" />
+                  <div className="h-4 w-3/4 bg-gray-200 rounded" />
+                  <div className="h-8 w-32 bg-gray-200 rounded ml-auto" />
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     );
   }
 
   return (
-    <AccountLayout 
-      lang={lang}
-      title={t?.bookings?.hostTitle || 'Manage Bookings'}
-      subtitle={t?.bookings?.hostSubtitle || 'View and manage bookings for your properties'}
-    >
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">{t?.bookings?.hostTitle || 'Manage Bookings'}</h1>
+        <p className="mt-2 text-gray-600">{t?.bookings?.hostSubtitle || 'View and manage bookings for your properties'}</p>
+      </div>
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
@@ -496,7 +514,7 @@ function HostBookingsContent({ lang }: { lang: Locale }) {
             )}
           </>
         )}
-      </AccountLayout>
+    </div>
   );
 }
 
@@ -506,11 +524,32 @@ export default function HostBookingsPage({ params }: { params: Promise<{ lang: s
 
   return (
     <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+      <div className="space-y-6 animate-pulse">
+        <div>
+          <div className="h-9 w-56 bg-gray-200 rounded" />
+          <div className="mt-2 h-5 w-96 bg-gray-200 rounded" />
         </div>
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="space-y-2">
+                  <div className="h-5 w-48 bg-gray-200 rounded" />
+                  <div className="h-4 w-64 bg-gray-200 rounded" />
+                </div>
+                <div className="h-6 w-20 bg-gray-200 rounded" />
+              </div>
+              <div className="flex gap-6">
+                <div className="h-24 w-24 bg-gray-200 rounded-lg" />
+                <div className="flex-1 space-y-3">
+                  <div className="h-4 w-full bg-gray-200 rounded" />
+                  <div className="h-4 w-3/4 bg-gray-200 rounded" />
+                  <div className="h-8 w-32 bg-gray-200 rounded ml-auto" />
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     }>
       <HostBookingsContent lang={langParam} />

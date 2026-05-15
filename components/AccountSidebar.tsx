@@ -36,15 +36,23 @@ export default function AccountSidebar({
   const [user, setUser] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [userRole, setUserRole] = useState<RoleName | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const getUser = async () => {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      setUser(user);
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        setUser(user);
+        if (!user) {
+          setIsLoading(false);
+        }
+      } catch {
+        setUser(null);
+        setIsLoading(false);
+      }
     };
     getUser();
   }, []);
@@ -68,6 +76,7 @@ export default function AccountSidebar({
       const fetchUserRole = async () => {
         const role = await getUserRole(user.id);
         setUserRole(role);
+        setIsLoading(false);
       };
 
       fetchUserRole();
@@ -170,14 +179,54 @@ export default function AccountSidebar({
   );
 
   const isActive = (href: string) => {
+    const link = `/${lang}${href}`;
     if (href === `/account`) {
-      return pathname === href;
+      return pathname === link;
     }
-    return pathname.startsWith(href);
+    return pathname.startsWith(link);
   };
 
   const fullName =
     user?.user_metadata?.first_name + " " + user?.user_metadata?.last_name;
+
+  if (isLoading) {
+    return (
+      <div className={`w-64 ${className} animate-pulse`}>
+        {/* User Profile Skeleton */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <div className="flex items-center space-x-4">
+            <div className="h-12 w-12 bg-gray-200 rounded-full" />
+            <div className="flex-1 space-y-2">
+              <div className="h-4 w-24 bg-gray-200 rounded" />
+              <div className="h-3 w-32 bg-gray-200 rounded" />
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation Skeleton */}
+        <nav className="bg-white rounded-lg shadow-sm">
+          <ul className="space-y-1 p-2">
+            {[...Array(5)].map((_, i) => (
+              <li key={i}>
+                <div className="flex items-center gap-3 px-4 py-3">
+                  <div className="h-5 w-5 bg-gray-200 rounded" />
+                  <div className="flex-1 space-y-1">
+                    <div className="h-4 w-24 bg-gray-200 rounded" />
+                    <div className="h-3 w-32 bg-gray-200 rounded" />
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        {/* Logout Skeleton */}
+        <div className="mt-6 px-4 py-3">
+          <div className="h-5 w-24 bg-gray-200 rounded" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`w-64 ${className}`}>

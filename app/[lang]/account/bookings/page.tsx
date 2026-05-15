@@ -10,7 +10,6 @@ import { createClient } from '@/utils/supabase/client';
 import { Calendar, MapPin, Users, Euro, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import AccountLayout from '@/components/AccountLayout';
 
 interface BookingWithHouse {
   id: string;
@@ -126,41 +125,58 @@ function BookingsContent({ lang }: { lang: Locale }) {
 
   if (loading) {
     return (
-      <AccountLayout lang={lang}>
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading your bookings...</p>
-          </div>
+      <div className="space-y-6 animate-pulse">
+        <div>
+          <div className="h-9 w-48 bg-gray-200 rounded" />
+          <div className="mt-2 h-5 w-80 bg-gray-200 rounded" />
         </div>
-      </AccountLayout>
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="space-y-2">
+                  <div className="h-5 w-48 bg-gray-200 rounded" />
+                  <div className="h-4 w-64 bg-gray-200 rounded" />
+                </div>
+                <div className="h-6 w-20 bg-gray-200 rounded" />
+              </div>
+              <div className="flex gap-6">
+                <div className="h-24 w-24 bg-gray-200 rounded-lg" />
+                <div className="flex-1 space-y-3">
+                  <div className="h-4 w-full bg-gray-200 rounded" />
+                  <div className="h-4 w-3/4 bg-gray-200 rounded" />
+                  <div className="h-8 w-32 bg-gray-200 rounded ml-auto" />
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     );
   }
 
   if (error) {
     return (
-      <AccountLayout lang={lang}>
-        <div className="bg-white rounded-lg shadow-sm p-8 max-w-md text-center">
-          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error</h2>
-          <p className="text-gray-600 mb-6">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
-      </AccountLayout>
+      <div className="bg-white rounded-lg shadow-sm p-8 max-w-md text-center">
+        <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">Error</h2>
+        <p className="text-gray-600 mb-6">{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+        >
+          Try Again
+        </button>
+      </div>
     );
   }
 
   return (
-    <AccountLayout 
-      lang={lang}
-      title={t?.bookings?.title || 'My Bookings'}
-      subtitle={t?.bookings?.subtitle || 'View and manage your booking history'}
-    >
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">{t?.bookings?.title || 'My Bookings'}</h1>
+        <p className="mt-2 text-gray-600">{t?.bookings?.subtitle || 'View and manage your booking history'}</p>
+      </div>
       {bookings.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm p-8 text-center">
           <div className="text-gray-400 mb-4">
@@ -192,29 +208,29 @@ function BookingsContent({ lang }: { lang: Locale }) {
                         {booking.house.title}
                       </h3>
                       {getStatusBadge(booking.status)}
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <div className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4" />
-                          {booking.house.location}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          {new Date(booking.created_at).toLocaleDateString()}
-                        </div>
-                      </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-gray-900">
-                        €{booking.total_price}
+                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4" />
+                        {booking.house.location}
                       </div>
-                      <div className="text-sm text-gray-600">
-                        {t?.bookings?.totalPrice || 'Total Price'}
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-4 h-4" />
+                        {new Date(booking.created_at).toLocaleDateString()}
                       </div>
                     </div>
                   </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-gray-900">
+                      €{booking.total_price}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {t?.bookings?.totalPrice || 'Total Price'}
+                    </div>
+                  </div>
+                </div>
 
-                  {/* Property Image */}
+                {/* Property Image */}
                   <div className="flex gap-6">
                     <div className="shrink-0">
                       <div className="relative w-24 h-24 rounded-lg overflow-hidden">
@@ -372,7 +388,7 @@ function BookingsContent({ lang }: { lang: Locale }) {
             ))}
           </div>
         )}
-      </AccountLayout>
+      </div>
   );
 }
 
@@ -382,11 +398,32 @@ export default function BookingsPage({ params }: { params: Promise<{ lang: strin
 
   return (
     <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+      <div className="space-y-6 animate-pulse">
+        <div>
+          <div className="h-9 w-48 bg-gray-200 rounded" />
+          <div className="mt-2 h-5 w-80 bg-gray-200 rounded" />
         </div>
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="space-y-2">
+                  <div className="h-5 w-48 bg-gray-200 rounded" />
+                  <div className="h-4 w-64 bg-gray-200 rounded" />
+                </div>
+                <div className="h-6 w-20 bg-gray-200 rounded" />
+              </div>
+              <div className="flex gap-6">
+                <div className="h-24 w-24 bg-gray-200 rounded-lg" />
+                <div className="flex-1 space-y-3">
+                  <div className="h-4 w-full bg-gray-200 rounded" />
+                  <div className="h-4 w-3/4 bg-gray-200 rounded" />
+                  <div className="h-8 w-32 bg-gray-200 rounded ml-auto" />
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     }>
       <BookingsContent lang={langParam} />

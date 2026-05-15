@@ -111,7 +111,7 @@ export function ChangePasswordForm({ session }: ChangePasswordFormProps) {
             name="current_password"
             value={passwordData.current_password}
             onChange={handlePasswordChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            className="w-[50%] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             placeholder="Enter your current password"
             required
           />
@@ -127,7 +127,7 @@ export function ChangePasswordForm({ session }: ChangePasswordFormProps) {
             name="new_password"
             value={passwordData.new_password}
             onChange={handlePasswordChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            className="w-[50%] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             placeholder="Enter your new password"
             required
             minLength={6}
@@ -145,7 +145,7 @@ export function ChangePasswordForm({ session }: ChangePasswordFormProps) {
             name="confirm_password"
             value={passwordData.confirm_password}
             onChange={handlePasswordChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            className="w-[50%] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             placeholder="Confirm your new password"
             required
             minLength={6}

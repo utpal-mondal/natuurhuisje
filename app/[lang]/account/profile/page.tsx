@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation';
 import { Suspense, use } from 'react';
 import { createClient } from '@/utils/supabase/server';
 import ProfileForm from '@/components/account/ProfileForm';
-import AccountLayout from '@/components/AccountLayout';
 import { i18n, type Locale } from '@/i18n/config';
 
 async function ProfileContent({ lang }: { lang: Locale }) {
@@ -40,24 +39,22 @@ async function ProfileContent({ lang }: { lang: Locale }) {
   const avatarUrl = profile?.avatar_url || '';
 
   return (
-    <AccountLayout lang={lang}>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Profile Settings
-          </h1>
-          <p className="mt-2 text-gray-600">
-            Manage your personal information and account details
-          </p>
-        </div>
-
-        <ProfileForm 
-          profile={profile} 
-          session={session}
-          fullName={fullName}
-        />
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">
+          Profile Settings
+        </h1>
+        <p className="mt-2 text-gray-600">
+          Manage your personal information and account details
+        </p>
       </div>
-    </AccountLayout>
+
+      <ProfileForm 
+        profile={profile} 
+        session={session}
+        fullName={fullName}
+      />
+    </div>
   );
 }
 
@@ -78,10 +75,28 @@ export default function ProfilePage({
   return (
     <Suspense
       fallback={
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading...</p>
+        <div className="space-y-6 animate-pulse">
+          <div>
+            <div className="h-9 w-56 bg-gray-200 rounded" />
+            <div className="mt-2 h-5 w-80 bg-gray-200 rounded" />
+          </div>
+          <div className="bg-white rounded-lg shadow-sm border p-6 space-y-6">
+            <div className="flex items-center gap-4">
+              <div className="h-20 w-20 bg-gray-200 rounded-full" />
+              <div className="space-y-2">
+                <div className="h-5 w-40 bg-gray-200 rounded" />
+                <div className="h-4 w-24 bg-gray-200 rounded" />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="space-y-2">
+                  <div className="h-4 w-24 bg-gray-200 rounded" />
+                  <div className="h-10 w-full bg-gray-200 rounded" />
+                </div>
+              ))}
+            </div>
+            <div className="h-10 w-32 bg-gray-200 rounded" />
           </div>
         </div>
       }

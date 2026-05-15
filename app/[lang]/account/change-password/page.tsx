@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation';
 import { Suspense, use } from 'react';
 import { createClient } from '@/utils/supabase/server';
 import { ChangePasswordForm } from '@/components/account/ChangePasswordForm';
-import AccountLayout from '@/components/AccountLayout';
 import { i18n, type Locale } from '@/i18n/config';
 
 async function ChangePasswordContent({ lang }: { lang: Locale }) {
@@ -29,24 +28,22 @@ async function ChangePasswordContent({ lang }: { lang: Locale }) {
   }
 
   return (
-    <AccountLayout lang={lang}>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Change Password
-          </h1>
-          <p className="mt-2 text-gray-600">
-            Update your account password
-          </p>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">
+          Change Password
+        </h1>
+        <p className="mt-2 text-gray-600">
+          Update your account password
+        </p>
+      </div>
 
-        <div className="bg-white rounded-lg shadow-sm border">
-          <div className="p-6">
-            <ChangePasswordForm session={session} />
-          </div>
+      <div className="bg-white rounded-lg shadow-sm border">
+        <div className="p-6">
+          <ChangePasswordForm session={session} />
         </div>
       </div>
-    </AccountLayout>
+    </div>
   );
 }
 
@@ -67,10 +64,25 @@ export default function ChangePasswordPage({
   return (
     <Suspense
       fallback={
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading...</p>
+        <div className="space-y-6 animate-pulse">
+          <div>
+            <div className="h-9 w-56 bg-gray-200 rounded" />
+            <div className="mt-2 h-5 w-72 bg-gray-200 rounded" />
+          </div>
+          <div className="bg-white rounded-lg shadow-sm border p-6 space-y-6">
+            <div className="space-y-2">
+              <div className="h-4 w-32 bg-gray-200 rounded" />
+              <div className="h-10 w-full bg-gray-200 rounded" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 w-40 bg-gray-200 rounded" />
+              <div className="h-10 w-full bg-gray-200 rounded" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 w-48 bg-gray-200 rounded" />
+              <div className="h-10 w-full bg-gray-200 rounded" />
+            </div>
+            <div className="h-10 w-40 bg-gray-200 rounded" />
           </div>
         </div>
       }

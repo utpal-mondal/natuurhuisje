@@ -14,7 +14,6 @@ import {
   LogOut,
   Home,
 } from "lucide-react";
-import AccountLayout from "@/components/AccountLayout";
 
 export default async function AccountPage() {
   const supabase = await createClient();
@@ -102,11 +101,14 @@ export default async function AccountPage() {
           : "User");
 
   return (
-    <AccountLayout
-      lang="en"
-      title="Overview"
-      subtitle="Welcome back! Here's what's happening with your properties today."
-    >
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Overview</h1>
+        <p className="mt-2 text-gray-600">
+          Welcome back! Here&apos;s what&apos;s happening with your properties today.
+        </p>
+      </div>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-white p-6 rounded-lg border border-gray-200">
@@ -251,6 +253,6 @@ export default async function AccountPage() {
           <p className="text-gray-600">No properties yet</p>
         )}
       </div>
-    </AccountLayout>
+    </div>
   );
 }
