@@ -438,7 +438,7 @@ export default function Home({ params }: { params: Promise<{ lang: string }> }) 
         
         {/* Hero Content */}
         <div className="relative z-10 container-custom h-full min-h-[85vh] flex flex-col justify-center items-center text-center px-4 pt-20 overflow-visible">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-5 py-2 mb-8">
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-5 py-2 mb-8 mt-8">
             <span className="w-2 h-2 bg-purple-300 rounded-full animate-pulse"></span>
             <span className="text-sm text-white/90 font-medium tracking-wide">{t.hero.badge}</span>
           </div>
